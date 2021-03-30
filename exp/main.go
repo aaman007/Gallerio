@@ -35,15 +35,15 @@ func main() {
 		panic(err)
 	}
 
-	user.Email = "updated_email@gmail.com"
-	err = us.Update(&user)
-	if err != nil {
-		panic(err)
-	}
 
-	userUpdated, err := us.ByID(1)
+	userById, err := us.ByID(user.ID)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(userUpdated)
+	userByEmail, err := us.ByEmail(user.Email)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(userById)
+	fmt.Println(userByEmail)
 }

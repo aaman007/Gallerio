@@ -7,7 +7,8 @@ import (
 )
 
 var (
-	ErrNotFound = errors.New("model: resource not found")
+	ErrNotFound = errors.New("models: resource not found")
+	ErrInvalidID = errors.New("models: ID provided was invalid")
 )
 
 func NewService(connectionInfo string) (*Service, error) {
@@ -27,15 +28,24 @@ type Service struct {
 
 func (us *Service) ByID(id uint) (*User, error) {
 	var user User
-	err := us.DB.Where("id = ?", id).First(&user).Error
-	switch err {
-	case nil:
-		return &user, nil
-	case gorm.ErrRecordNotFound:
-		return nil, ErrNotFound
-	default:
-		return nil, err
+	db := us.DB.Where("id = ?", id)
+	err := first(db, &user)
+	return &user, err
+}
+
+func (us *Service) ByEmail(email string) (*User, error) {
+	var user User
+	db := us.DB.Where("email = ?", email)
+	err := first(db, &user)
+	return &user, err
+}
+
+func first(db *gorm.DB, dst interface{}) error {
+	err := db.First(dst).Error
+	if err == gorm.ErrRecordNotFound {
+		return ErrNotFound
 	}
+	return err
 }
 
 func (us *Service) Create(user *User) error {
@@ -44,6 +54,14 @@ func (us *Service) Create(user *User) error {
 
 func (us *Service) Update(user *User) error {
 	return us.DB.Save(user).Error
+}
+
+func (us *Service) Delete(id uint) error {
+	if id <= 0 {
+		return ErrInvalidID
+	}
+	user := User{Model: gorm.Model{ID: id}}
+	return us.DB.Delete(&user).Error
 }
 
 func (us *Service) Close() error {
