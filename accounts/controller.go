@@ -1,7 +1,6 @@
 package accounts
 
 import (
-	"fmt"
 	"go-web-dev-2/utils"
 	"go-web-dev-2/views"
 	"net/http"
@@ -36,7 +35,9 @@ func (uc *Controller) SignUp(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	fmt.Fprintln(w, user)
+
+	signInUser(w, &user)
+	http.Redirect(w, req, "/", http.StatusSeeOther)
 }
 
 func (uc *Controller) SignIn(w http.ResponseWriter, req *http.Request) {
@@ -44,14 +45,25 @@ func (uc *Controller) SignIn(w http.ResponseWriter, req *http.Request) {
 	utils.Must(utils.ParseForm(req, &form))
 
 	user, err := uc.us.Authenticate(form.Email, form.Password)
-	switch err {
-	case ErrNotFound:
-		http.Error(w, "Email Address is incorrect", http.StatusBadRequest)
-	case ErrInvalidPassword:
-		http.Error(w, "Password is incorrect", http.StatusBadRequest)
-	case nil:
-		fmt.Fprintln(w, user)
-	default:
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	if err != nil {
+		switch err {
+		case ErrNotFound:
+			http.Error(w, "Email Address is incorrect", http.StatusBadRequest)
+		case ErrInvalidPassword:
+			http.Error(w, "Password is incorrect", http.StatusBadRequest)
+		default:
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
 	}
+
+	signInUser(w, user)
+	http.Redirect(w, req, "/", http.StatusSeeOther)
+}
+
+func signInUser(w http.ResponseWriter, user *User) {
+	cookie := &http.Cookie{
+		Name: "session",
+		Value: user.Email,
+	}
+	http.SetCookie(w, cookie)
 }
