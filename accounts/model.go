@@ -42,6 +42,10 @@ func (us *Service) Create(user *User) error {
 	return us.DB.Create(user).Error
 }
 
+func (us *Service) Update(user *User) error {
+	return us.DB.Save(user).Error
+}
+
 func (us *Service) Close() error {
 	return us.DB.Close()
 }
