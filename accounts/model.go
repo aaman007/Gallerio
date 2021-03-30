@@ -38,6 +38,10 @@ func (us *Service) ByID(id uint) (*User, error) {
 	}
 }
 
+func (us *Service) Create(user *User) error {
+	return us.db.Create(user).Error
+}
+
 func (us *Service) Close() error {
 	return us.db.Close()
 }

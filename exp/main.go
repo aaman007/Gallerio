@@ -25,10 +25,19 @@ func main() {
 
 	defer us.Close()
 
-	// us.DestructiveReset()
-	user, err := us.ByID(12)
-	if err != nil {
+	user := accounts.User{
+		Name: "Amanur Rahman",
+		Email: "aaman007.liilab@gmail.com",
+	}
+
+	us.DestructiveReset()
+	if err := us.Create(&user); err != nil {
 		panic(err)
 	}
+
+	//user, err := us.ByID(12)
+	//if err != nil {
+	//	panic(err)
+	//}
 	fmt.Println(user)
 }
