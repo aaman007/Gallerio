@@ -10,6 +10,7 @@ import (
 var (
 	ErrNotFound = errors.New("models: resource not found")
 	ErrInvalidID = errors.New("models: ID provided was invalid")
+	ErrInvalidPassword = errors.New("models: Incorrect password provided")
 )
 
 const applicationPasswordPepper = "asdhgs73ehgsahdahe36daghsdh3e"
@@ -27,6 +28,25 @@ func NewService(connectionInfo string) (*Service, error) {
 
 type Service struct {
 	DB *gorm.DB
+}
+
+func (us *Service) Authenticate(email, password string) (*User, error) {
+	foundUser, err := us.ByEmail(email)
+	if err != nil {
+		return nil, err
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(foundUser.PasswordHash), []byte(password+applicationPasswordPepper))
+	if err != nil {
+		switch err {
+		case bcrypt.ErrMismatchedHashAndPassword:
+			return nil, ErrInvalidPassword
+		default:
+			return nil, err
+		}
+	}
+
+	return foundUser, nil
 }
 
 func (us *Service) ByID(id uint) (*User, error) {

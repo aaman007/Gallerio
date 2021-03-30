@@ -42,5 +42,16 @@ func (uc *Controller) SignUp(w http.ResponseWriter, req *http.Request) {
 func (uc *Controller) SignIn(w http.ResponseWriter, req *http.Request) {
 	var form SignInForm
 	utils.Must(utils.ParseForm(req, &form))
-	fmt.Fprintln(w, form)
+
+	user, err := uc.us.Authenticate(form.Email, form.Password)
+	switch err {
+	case ErrNotFound:
+		http.Error(w, "Email Address is incorrect", http.StatusBadRequest)
+	case ErrInvalidPassword:
+		http.Error(w, "Password is incorrect", http.StatusBadRequest)
+	case nil:
+		fmt.Fprintln(w, user)
+	default:
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
