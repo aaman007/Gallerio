@@ -4,6 +4,8 @@ import (
 	"errors"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
+	"go-web-dev-2/utils/hash"
+	"go-web-dev-2/utils/rand"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -14,6 +16,7 @@ var (
 )
 
 const applicationPasswordPepper = "asdhgs73ehgsahdahe36daghsdh3e"
+const hmacSecretKey = "dshjrewedshjf38274gewrh"
 
 func NewService(connectionInfo string) (*Service, error) {
 	db, err := gorm.Open("postgres", connectionInfo)
@@ -21,13 +24,16 @@ func NewService(connectionInfo string) (*Service, error) {
 		return nil, err
 	}
 	db.LogMode(true)
+	hmac := hash.NewHMAC(hmacSecretKey)
 	return &Service{
 		DB: db,
+		hmac: hmac,
 	}, nil
 }
 
 type Service struct {
 	DB *gorm.DB
+	hmac hash.HMAC
 }
 
 func (us *Service) Authenticate(email, password string) (*User, error) {
@@ -63,6 +69,16 @@ func (us *Service) ByEmail(email string) (*User, error) {
 	return &user, err
 }
 
+func (us *Service) ByRememberToken(token string) (*User, error) {
+	var user User
+	hashedToken := us.hmac.Hash(token)
+	err := first(us.DB.Where("remember_token_hash = ?", hashedToken), &user)
+	if err != nil {
+		return nil, err
+	}
+	return &user, err
+}
+
 func first(db *gorm.DB, dst interface{}) error {
 	err := db.First(dst).Error
 	if err == gorm.ErrRecordNotFound {
@@ -79,10 +95,21 @@ func (us *Service) Create(user *User) error {
 	}
 	user.PasswordHash = string(hashedBytes)
 	user.Password = ""
+	if user.RememberToken == "" {
+		token, err := rand.RememberToken()
+		if err != nil {
+			return err
+		}
+		user.RememberToken = token
+	}
+	user.RememberTokenHash = us.hmac.Hash(user.RememberToken)
 	return us.DB.Create(user).Error
 }
 
 func (us *Service) Update(user *User) error {
+	if user.RememberToken != "" {
+		user.RememberTokenHash = us.hmac.Hash(user.RememberToken)
+	}
 	return us.DB.Save(user).Error
 }
 
@@ -119,4 +146,6 @@ type User struct {
 	Email string `gorm:"not null;unique_index"`
 	Password string `gorm:"-"`
 	PasswordHash string `gorm:"not null"`
+	RememberToken string `gorm:"-"`
+	RememberTokenHash string `gorm:"not null;unique_index"`
 }

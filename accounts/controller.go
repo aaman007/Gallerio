@@ -1,8 +1,9 @@
 package accounts
 
 import (
-	error2 "go-web-dev-2/utils/error"
-	form2 "go-web-dev-2/utils/form"
+	errorUtil "go-web-dev-2/utils/error"
+	formUtil "go-web-dev-2/utils/form"
+	"go-web-dev-2/utils/rand"
 	"go-web-dev-2/views"
 	"net/http"
 )
@@ -24,7 +25,7 @@ type Controller struct {
 
 func (uc *Controller) SignUp(w http.ResponseWriter, req *http.Request) {
 	var form SignUpForm
-	error2.Must(form2.ParseForm(req, &form))
+	errorUtil.Must(formUtil.ParseForm(req, &form))
 
 	user := User{
 		Name: form.Name,
@@ -36,14 +37,16 @@ func (uc *Controller) SignUp(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	signInUser(w, &user)
+	if err := uc.signInUser(w, &user); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	http.Redirect(w, req, "/", http.StatusSeeOther)
 }
 
 func (uc *Controller) SignIn(w http.ResponseWriter, req *http.Request) {
 	var form SignInForm
-	error2.Must(form2.ParseForm(req, &form))
+	errorUtil.Must(formUtil.ParseForm(req, &form))
 
 	user, err := uc.us.Authenticate(form.Email, form.Password)
 	if err != nil {
@@ -55,16 +58,31 @@ func (uc *Controller) SignIn(w http.ResponseWriter, req *http.Request) {
 		default:
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
+		return
 	}
 
-	signInUser(w, user)
+	if err := uc.signInUser(w, user); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	http.Redirect(w, req, "/", http.StatusSeeOther)
 }
 
-func signInUser(w http.ResponseWriter, user *User) {
+func (uc *Controller) signInUser(w http.ResponseWriter, user *User) error {
+	if user.RememberToken == "" {
+		token, err := rand.RememberToken()
+		if err != nil {
+			return err
+		}
+		if err = uc.us.Update(user); err != nil {
+			return err
+		}
+		user.RememberToken = token
+	}
 	cookie := &http.Cookie{
-		Name: "session",
-		Value: user.Email,
+		Name: "remember_token",
+		Value: user.RememberToken,
 	}
 	http.SetCookie(w, cookie)
+	return nil
 }
