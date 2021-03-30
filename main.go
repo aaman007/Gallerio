@@ -26,7 +26,7 @@ func main() {
 		panic(err)
 	}
 	defer us.Close()
-	us.AutoMigrate()
+	us.DestructiveReset()
 
 	usersController := accounts.NewController(us)
 	coreController := core.NewController()

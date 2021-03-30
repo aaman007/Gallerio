@@ -32,6 +32,7 @@ func (uc *Controller) Create(w http.ResponseWriter, req *http.Request) {
 		Name: form.Name,
 		Username: form.Username,
 		Email: form.Email,
+		Password: form.Password,
 	}
 	if err := uc.us.Create(&user); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
