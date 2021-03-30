@@ -18,6 +18,18 @@ var (
 const applicationPasswordPepper = "asdhgs73ehgsahdahe36daghsdh3e"
 const hmacSecretKey = "dshjrewedshjf38274gewrh"
 
+
+type User struct {
+	gorm.Model
+	Name string
+	Username string `gorm:"not null;unique_index"`
+	Email string `gorm:"not null;unique_index"`
+	Password string `gorm:"-"`
+	PasswordHash string `gorm:"not null"`
+	RememberToken string `gorm:"-"`
+	RememberTokenHash string `gorm:"not null;unique_index"`
+}
+
 type UserDB interface {
 	// Methods for single user queries
 	ByID(id uint) (*User, error)
@@ -37,20 +49,44 @@ type UserDB interface {
 	DestructiveReset() error
 }
 
-func NewUserService(connectionInfo string) (*UserService, error) {
+type UserService interface {
+	Authenticate(email, password string) (*User, error)
+	UserDB
+}
+
+func NewUserService(connectionInfo string) (UserService, error) {
 	ug, err := newUserGorm(connectionInfo)
 	if err != nil {
 		return nil, err
 	}
-	return &UserService{
+	return &userService{
 		UserDB: &userValidator{
 			UserDB: ug,
 		},
 	}, nil
 }
 
-type UserService struct {
+type userService struct {
 	UserDB
+}
+
+func (us *userService) Authenticate(email, password string) (*User, error) {
+	foundUser, err := us.ByEmail(email)
+	if err != nil {
+		return nil, err
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(foundUser.PasswordHash), []byte(password+applicationPasswordPepper))
+	if err != nil {
+		switch err {
+		case bcrypt.ErrMismatchedHashAndPassword:
+			return nil, ErrInvalidPassword
+		default:
+			return nil, err
+		}
+	}
+
+	return foundUser, nil
 }
 
 type userValidator struct {
@@ -76,25 +112,6 @@ type userGorm struct {
 	hmac hash.HMAC
 }
 
-func (us *UserService) Authenticate(email, password string) (*User, error) {
-	foundUser, err := us.ByEmail(email)
-	if err != nil {
-		return nil, err
-	}
-
-	err = bcrypt.CompareHashAndPassword([]byte(foundUser.PasswordHash), []byte(password+applicationPasswordPepper))
-	if err != nil {
-		switch err {
-		case bcrypt.ErrMismatchedHashAndPassword:
-			return nil, ErrInvalidPassword
-		default:
-			return nil, err
-		}
-	}
-
-	return foundUser, nil
-}
-
 func (ug *userGorm) ByID(id uint) (*User, error) {
 	var user User
 	db := ug.DB.Where("id = ?", id)
@@ -117,14 +134,6 @@ func (ug *userGorm) ByRememberToken(token string) (*User, error) {
 		return nil, err
 	}
 	return &user, err
-}
-
-func first(db *gorm.DB, dst interface{}) error {
-	err := db.First(dst).Error
-	if err == gorm.ErrRecordNotFound {
-		return ErrNotFound
-	}
-	return err
 }
 
 func (ug *userGorm) Create(user *User) error {
@@ -179,13 +188,10 @@ func (ug *userGorm) AutoMigrate() error {
 	return nil
 }
 
-type User struct {
-	gorm.Model
-	Name string
-	Username string `gorm:"not null;unique_index"`
-	Email string `gorm:"not null;unique_index"`
-	Password string `gorm:"-"`
-	PasswordHash string `gorm:"not null"`
-	RememberToken string `gorm:"-"`
-	RememberTokenHash string `gorm:"not null;unique_index"`
+func first(db *gorm.DB, dst interface{}) error {
+	err := db.First(dst).Error
+	if err == gorm.ErrRecordNotFound {
+		return ErrNotFound
+	}
+	return err
 }

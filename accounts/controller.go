@@ -9,7 +9,7 @@ import (
 )
 
 
-func NewUserController(us *UserService) *UserController {
+func NewUserController(us UserService) *UserController {
 	return &UserController{
 		SignUpView: views.NewView("base", "accounts/signup"),
 		SignInView: views.NewView("base", "accounts/signin"),
@@ -20,7 +20,7 @@ func NewUserController(us *UserService) *UserController {
 type UserController struct {
 	SignUpView *views.View
 	SignInView *views.View
-	us *UserService
+	us UserService
 }
 
 func (uc *UserController) SignUp(w http.ResponseWriter, req *http.Request) {
