@@ -35,15 +35,14 @@ func main() {
 		panic(err)
 	}
 
-
-	userById, err := us.ByID(user.ID)
+	err = us.Delete(0)
 	if err != nil {
 		panic(err)
 	}
-	userByEmail, err := us.ByEmail(user.Email)
+
+	userById, err := us.ByID(1)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Println(userById)
-	fmt.Println(userByEmail)
 }
