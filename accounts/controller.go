@@ -82,6 +82,7 @@ func (uc *Controller) signInUser(w http.ResponseWriter, user *User) error {
 	cookie := &http.Cookie{
 		Name: "remember_token",
 		Value: user.RememberToken,
+		HttpOnly: true,
 	}
 	http.SetCookie(w, cookie)
 	return nil
