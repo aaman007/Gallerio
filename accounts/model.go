@@ -17,17 +17,17 @@ func NewService(connectionInfo string) (*Service, error) {
 	}
 	db.LogMode(true)
 	return &Service{
-		db: db,
+		DB: db,
 	}, nil
 }
 
 type Service struct {
-	db *gorm.DB
+	DB *gorm.DB
 }
 
 func (us *Service) ByID(id uint) (*User, error) {
 	var user User
-	err := us.db.Where("id = ?", id).First(&user).Error
+	err := us.DB.Where("id = ?", id).First(&user).Error
 	switch err {
 	case nil:
 		return &user, nil
@@ -39,16 +39,16 @@ func (us *Service) ByID(id uint) (*User, error) {
 }
 
 func (us *Service) Create(user *User) error {
-	return us.db.Create(user).Error
+	return us.DB.Create(user).Error
 }
 
 func (us *Service) Close() error {
-	return us.db.Close()
+	return us.DB.Close()
 }
 
 func (us *Service) DestructiveReset() {
-	us.db.DropTableIfExists(&User{})
-	us.db.AutoMigrate(&User{})
+	us.DB.DropTableIfExists(&User{})
+	us.DB.AutoMigrate(&User{})
 }
 
 type User struct {
