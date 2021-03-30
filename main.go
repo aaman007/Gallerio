@@ -21,15 +21,15 @@ func main() {
 		dbHost, dbPort, dbUser, dbPassword, dbName,
 	)
 
-	us, err := accounts.NewService(psqlInfo)
+	us, err := accounts.NewUserService(psqlInfo)
 	if err != nil {
 		panic(err)
 	}
 	defer us.Close()
 	us.AutoMigrate()
 
-	usersController := accounts.NewController(us)
-	coreController := core.NewController()
+	usersController := accounts.NewUserController(us)
+	coreController := core.NewStaticController()
 
 	router := mux.NewRouter()
 	router.Handle("/", coreController.HomeView).Methods("GET")

@@ -9,21 +9,21 @@ import (
 )
 
 
-func NewController(us *Service) *Controller {
-	return &Controller{
+func NewUserController(us *UserService) *UserController {
+	return &UserController{
 		SignUpView: views.NewView("base", "accounts/signup"),
 		SignInView: views.NewView("base", "accounts/signin"),
 		us: us,
 	}
 }
 
-type Controller struct {
+type UserController struct {
 	SignUpView *views.View
 	SignInView *views.View
-	us *Service
+	us *UserService
 }
 
-func (uc *Controller) SignUp(w http.ResponseWriter, req *http.Request) {
+func (uc *UserController) SignUp(w http.ResponseWriter, req *http.Request) {
 	var form SignUpForm
 	errorUtil.Must(formUtil.ParseForm(req, &form))
 
@@ -44,7 +44,7 @@ func (uc *Controller) SignUp(w http.ResponseWriter, req *http.Request) {
 	http.Redirect(w, req, "/", http.StatusSeeOther)
 }
 
-func (uc *Controller) SignIn(w http.ResponseWriter, req *http.Request) {
+func (uc *UserController) SignIn(w http.ResponseWriter, req *http.Request) {
 	var form SignInForm
 	errorUtil.Must(formUtil.ParseForm(req, &form))
 
@@ -68,7 +68,7 @@ func (uc *Controller) SignIn(w http.ResponseWriter, req *http.Request) {
 	http.Redirect(w, req, "/", http.StatusSeeOther)
 }
 
-func (uc *Controller) signInUser(w http.ResponseWriter, user *User) error {
+func (uc *UserController) signInUser(w http.ResponseWriter, user *User) error {
 	if user.RememberToken == "" {
 		token, err := rand.RememberToken()
 		if err != nil {
