@@ -8,14 +8,16 @@ import (
 )
 
 
-func NewController() *Controller {
+func NewController(us *Service) *Controller {
 	return &Controller{
 		SignUpView: views.NewView("base", "accounts/signup"),
+		us: us,
 	}
 }
 
 type Controller struct {
 	SignUpView *views.View
+	us *Service
 }
 
 func (uc *Controller) SignUp(w http.ResponseWriter, req *http.Request) {
@@ -25,5 +27,15 @@ func (uc *Controller) SignUp(w http.ResponseWriter, req *http.Request) {
 func (uc *Controller) Create(w http.ResponseWriter, req *http.Request) {
 	var form SignUpForm
 	utils.Must(utils.ParseForm(req, &form))
-	fmt.Fprintln(w, form)
+
+	user := User{
+		Name: form.Name,
+		Username: form.Username,
+		Email: form.Email,
+	}
+	if err := uc.us.Create(&user); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	fmt.Fprintln(w, user)
 }

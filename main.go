@@ -1,14 +1,34 @@
 package main
 
 import (
+	"fmt"
 	"github.com/gorilla/mux"
 	"go-web-dev-2/accounts"
 	"go-web-dev-2/core"
 	"net/http"
 )
 
+const (
+	dbHost = "localhost"
+	dbPort = 5432
+	dbUser = "robert"
+	dbPassword = "password"
+	dbName = "gallerio"
+)
+
 func main() {
-	usersController := accounts.NewController()
+	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
+		dbHost, dbPort, dbUser, dbPassword, dbName,
+	)
+
+	us, err := accounts.NewService(psqlInfo)
+	if err != nil {
+		panic(err)
+	}
+	defer us.Close()
+	us.AutoMigrate()
+
+	usersController := accounts.NewController(us)
 	coreController := core.NewController()
 
 	router := mux.NewRouter()
