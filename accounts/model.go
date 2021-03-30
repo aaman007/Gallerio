@@ -12,6 +12,8 @@ var (
 	ErrInvalidID = errors.New("models: ID provided was invalid")
 )
 
+const applicationPasswordPepper = "asdhgs73ehgsahdahe36daghsdh3e"
+
 func NewService(connectionInfo string) (*Service, error) {
 	db, err := gorm.Open("postgres", connectionInfo)
 	if err != nil {
@@ -50,7 +52,8 @@ func first(db *gorm.DB, dst interface{}) error {
 }
 
 func (us *Service) Create(user *User) error {
-	hashedBytes, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	passwordBytes := []byte(user.Password + applicationPasswordPepper)
+	hashedBytes, err := bcrypt.GenerateFromPassword(passwordBytes, bcrypt.DefaultCost)
 	if err != nil {
 		return err
 	}
