@@ -26,7 +26,7 @@ func main() {
 		panic(err)
 	}
 	defer us.Close()
-	us.DestructiveReset()
+	us.AutoMigrate()
 
 	usersController := accounts.NewController(us)
 	coreController := core.NewController()
@@ -34,7 +34,9 @@ func main() {
 	router := mux.NewRouter()
 	router.Handle("/", coreController.HomeView).Methods("GET")
 	router.Handle("/contact", coreController.ContactView).Methods("GET")
-	router.HandleFunc("/signup", usersController.SignUp).Methods("GET")
-	router.HandleFunc("/signup", usersController.Create).Methods("POST")
+	router.Handle("/signup", usersController.SignUpView).Methods("GET")
+	router.HandleFunc("/signup", usersController.SignUp).Methods("POST")
+	router.Handle("/signin", usersController.SignInView).Methods("GET")
+	router.HandleFunc("/signin", usersController.SignIn).Methods("POST")
 	http.ListenAndServe(":8000", router)
 }

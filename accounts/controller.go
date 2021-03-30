@@ -11,20 +11,18 @@ import (
 func NewController(us *Service) *Controller {
 	return &Controller{
 		SignUpView: views.NewView("base", "accounts/signup"),
+		SignInView: views.NewView("base", "accounts/signin"),
 		us: us,
 	}
 }
 
 type Controller struct {
 	SignUpView *views.View
+	SignInView *views.View
 	us *Service
 }
 
 func (uc *Controller) SignUp(w http.ResponseWriter, req *http.Request) {
-	utils.Must(uc.SignUpView.Render(w, nil))
-}
-
-func (uc *Controller) Create(w http.ResponseWriter, req *http.Request) {
 	var form SignUpForm
 	utils.Must(utils.ParseForm(req, &form))
 
@@ -39,4 +37,10 @@ func (uc *Controller) Create(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	fmt.Fprintln(w, user)
+}
+
+func (uc *Controller) SignIn(w http.ResponseWriter, req *http.Request) {
+	var form SignInForm
+	utils.Must(utils.ParseForm(req, &form))
+	fmt.Fprintln(w, form)
 }

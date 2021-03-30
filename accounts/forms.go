@@ -6,3 +6,9 @@ type SignUpForm struct {
 	Email string `schema:"email"`
 	Password string `schema:"password"`
 }
+
+type SignInForm struct {
+	Email string `schema:"email"`
+	Password string `schema:"password"`
+}
+
