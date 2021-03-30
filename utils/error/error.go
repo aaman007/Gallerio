@@ -1,4 +1,4 @@
-package utils
+package error
 
 func Must(err error) {
 	if err != nil {

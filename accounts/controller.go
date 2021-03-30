@@ -1,7 +1,8 @@
 package accounts
 
 import (
-	"go-web-dev-2/utils"
+	error2 "go-web-dev-2/utils/error"
+	form2 "go-web-dev-2/utils/form"
 	"go-web-dev-2/views"
 	"net/http"
 )
@@ -23,7 +24,7 @@ type Controller struct {
 
 func (uc *Controller) SignUp(w http.ResponseWriter, req *http.Request) {
 	var form SignUpForm
-	utils.Must(utils.ParseForm(req, &form))
+	error2.Must(form2.ParseForm(req, &form))
 
 	user := User{
 		Name: form.Name,
@@ -42,7 +43,7 @@ func (uc *Controller) SignUp(w http.ResponseWriter, req *http.Request) {
 
 func (uc *Controller) SignIn(w http.ResponseWriter, req *http.Request) {
 	var form SignInForm
-	utils.Must(utils.ParseForm(req, &form))
+	error2.Must(form2.ParseForm(req, &form))
 
 	user, err := uc.us.Authenticate(form.Email, form.Password)
 	if err != nil {
