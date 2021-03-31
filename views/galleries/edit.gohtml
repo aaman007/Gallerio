@@ -18,12 +18,12 @@
             <input type="text" name="title" class="form-control" id="id_title" value="{{.Title}}" aria-describedby="titleHelp">
         </div>
         <div class="text-center">
-            <button type="submit" class="btn btn-primary">Update</button>
+            <button type="submit" class="btn btn-sm btn-primary">Update</button>
         </div>
     </form>
     <form class="mt-2" method="POST" action="/galleries/{{.ID}}/delete">
         <div class="text-center">
-            <button type="submit" class="btn btn-danger">Delete</button>
+            <button type="submit" class="btn btn-sm btn-danger">Delete</button>
         </div>
     </form>
 {{ end }}

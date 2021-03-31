@@ -31,7 +31,7 @@ func (uc *UserController) SignUp(w http.ResponseWriter, req *http.Request) {
 	if err := forms.ParseForm(req, &form); err != nil {
 		log.Println(err)
 		data.SetAlert(err)
-		uc.SignUpView.Render(w, data)
+		uc.SignUpView.Render(w, req, data)
 		return
 	}
 
@@ -44,7 +44,7 @@ func (uc *UserController) SignUp(w http.ResponseWriter, req *http.Request) {
 	if err := uc.us.Create(&user); err != nil {
 		log.Println(err)
 		data.SetAlert(err)
-		uc.SignUpView.Render(w, data)
+		uc.SignUpView.Render(w, req, data)
 		return
 	}
 	if err := uc.signInUser(w, &user); err != nil {
@@ -61,7 +61,7 @@ func (uc *UserController) SignIn(w http.ResponseWriter, req *http.Request) {
 	if err := forms.ParseForm(req, &form); err != nil {
 		log.Println(err)
 		data.SetAlert(err)
-		uc.SignInView.Render(w, data)
+		uc.SignInView.Render(w, req, data)
 		return
 	}
 
@@ -74,13 +74,13 @@ func (uc *UserController) SignIn(w http.ResponseWriter, req *http.Request) {
 		default:
 			data.SetAlert(err)
 		}
-		uc.SignInView.Render(w, data)
+		uc.SignInView.Render(w, req, data)
 		return
 	}
 
 	if err := uc.signInUser(w, user); err != nil {
 		log.Println(err)
-		uc.SignInView.Render(w, data)
+		uc.SignInView.Render(w, req, data)
 		return
 	}
 	http.Redirect(w, req, "/", http.StatusSeeOther)

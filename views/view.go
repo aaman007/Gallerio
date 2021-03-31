@@ -35,20 +35,27 @@ type View struct {
 }
 
 func (v *View) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	v.Render(w, nil)
+	v.Render(w, req,nil)
 }
 
-func (v *View) Render(w http.ResponseWriter, data interface{}) {
-	switch data.(type) {
+func (v *View) Render(w http.ResponseWriter, req *http.Request, data interface{}) {
+	var _data Data
+	switch d := data.(type) {
 	case Data:
-		// pass
+		_data = d
 	default:
-		data = Data{
+		_data = Data{
 			Content: data,
 		}
 	}
+
+	// TODO: Change Code Structure to fix this
+	_data.User = struct {
+		Name string
+	}{Name: "Amanur"}
+
 	var buff bytes.Buffer
-	if err := v.Template.ExecuteTemplate(&buff, v.Layout, data); err != nil {
+	if err := v.Template.ExecuteTemplate(&buff, v.Layout, _data); err != nil {
 		http.Error(w, AlertMessageGeneric, http.StatusInternalServerError)
 		return
 	}

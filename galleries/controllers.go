@@ -46,7 +46,7 @@ func (gc *GalleryController) Index(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	data := views.Data{Content: galleries}
-	gc.IndexView.Render(w, data)
+	gc.IndexView.Render(w, req, data)
 }
 
 // POST /galleries
@@ -56,7 +56,7 @@ func (gc *GalleryController) Create(w http.ResponseWriter, req *http.Request) {
 	if err := forms.ParseForm(req, &form); err != nil {
 		log.Println(err)
 		data.SetAlert(err)
-		gc.New.Render(w, data)
+		gc.New.Render(w, req, data)
 		return
 	}
 
@@ -69,7 +69,7 @@ func (gc *GalleryController) Create(w http.ResponseWriter, req *http.Request) {
 	if err := gc.gs.Create(&gallery); err != nil {
 		log.Println(err)
 		data.SetAlert(err)
-		gc.New.Render(w, data)
+		gc.New.Render(w, req, data)
 		return
 	}
 	url, err := gc.router.Get(EditGalleryName).URL("id", fmt.Sprintf("%v", gallery.ID))
@@ -87,7 +87,7 @@ func (gc *GalleryController) Show(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	data := views.Data{Content: gallery}
-	gc.ShowView.Render(w, data)
+	gc.ShowView.Render(w, req, data)
 }
 
 // GET /galleries/{id}/edit
@@ -102,7 +102,7 @@ func (gc *GalleryController) Edit(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	data := views.Data{Content: gallery}
-	gc.EditView.Render(w, data)
+	gc.EditView.Render(w, req, data)
 }
 
 // POST /galleries/{id}/update
@@ -122,7 +122,7 @@ func (gc *GalleryController) Update(w http.ResponseWriter, req *http.Request) {
 	if err := forms.ParseForm(req, &form); err != nil {
 		log.Println(err)
 		data.SetAlert(err)
-		gc.EditView.Render(w, data)
+		gc.EditView.Render(w, req, data)
 		return
 	}
 
@@ -130,7 +130,7 @@ func (gc *GalleryController) Update(w http.ResponseWriter, req *http.Request) {
 	err = gc.gs.Update(gallery)
 	if err != nil {
 		data.SetAlert(err)
-		gc.EditView.Render(w, data)
+		gc.EditView.Render(w, req, data)
 		return
 	}
 	http.Redirect(w, req, "/galleries", http.StatusSeeOther)
@@ -152,7 +152,7 @@ func (gc *GalleryController) Delete(w http.ResponseWriter, req *http.Request) {
 	err = gc.gs.Delete(gallery.ID)
 	if err != nil {
 		data.SetAlert(err)
-		gc.EditView.Render(w, data)
+		gc.EditView.Render(w, req, data)
 		return
 	}
 	http.Redirect(w, req, "/galleries", http.StatusSeeOther)
