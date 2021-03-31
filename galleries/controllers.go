@@ -2,6 +2,7 @@ package galleries
 
 import (
 	"fmt"
+	"gallerio/utils/context"
 	"gallerio/utils/forms"
 	"gallerio/views"
 	"log"
@@ -32,8 +33,11 @@ func (gc *GalleryController) Create(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	user := context.User(req.Context())
+
 	gallery := Gallery{
 		Title: form.Title,
+		UserID: user.ID,
 	}
 	if err := gc.gs.Create(&gallery); err != nil {
 		log.Println(err)
