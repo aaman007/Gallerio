@@ -7,6 +7,7 @@ import (
 	"go-web-dev-2/utils/hash"
 	"go-web-dev-2/utils/rand"
 	"golang.org/x/crypto/bcrypt"
+	"strings"
 )
 
 var (
@@ -94,9 +95,9 @@ func (us *userService) Authenticate(email, password string) (*User, error) {
 	return foundUser, nil
 }
 
-type userValidatorFunc func(*User) error
+type userValFunc func(*User) error
 
-func runUserValidatorFuncs(user *User, fns ...userValidatorFunc) error {
+func runUserValFuncs(user *User, fns ...userValFunc) error {
 	for _, fn := range fns {
 		if err := fn(user); err != nil {
 			return err
@@ -110,21 +111,30 @@ type userValidator struct {
 	hmac hash.HMAC
 }
 
+func (uv *userValidator) ByEmail(email string) (*User, error) {
+	user := &User{Email: email}
+	if err := runUserValFuncs(user, uv.normalizeEmail); err != nil {
+		return nil, err
+	}
+	return uv.UserDB.ByEmail(user.Email)
+}
+
 func (uv *userValidator) ByRememberToken(token string) (*User, error) {
 	user := &User{
 		RememberToken: token,
 	}
-	if err := runUserValidatorFuncs(user, uv.hashRememberToken); err != nil {
+	if err := runUserValFuncs(user, uv.hashRememberToken); err != nil {
 		return nil, err
 	}
 	return uv.UserDB.ByRememberToken(user.RememberToken)
 }
 
 func (uv *userValidator) Create(user *User) error {
-	err := runUserValidatorFuncs(user,
+	err := runUserValFuncs(user,
 		uv.bcryptPassword,
 		uv.defaultRememberToken,
 		uv.hashRememberToken,
+		uv.normalizeEmail,
 	)
 	if err != nil {
 		return err
@@ -133,7 +143,11 @@ func (uv *userValidator) Create(user *User) error {
 }
 
 func (uv *userValidator) Update(user *User) error {
-	err := runUserValidatorFuncs(user, uv.bcryptPassword, uv.hashRememberToken)
+	err := runUserValFuncs(user,
+		uv.bcryptPassword,
+		uv.hashRememberToken,
+		uv.normalizeEmail,
+	)
 	if err != nil {
 		return err
 	}
@@ -143,7 +157,7 @@ func (uv *userValidator) Update(user *User) error {
 func (uv *userValidator) Delete(id uint) error {
 	var user User
 	user.ID = id
-	err := runUserValidatorFuncs(&user, uv.idGreaterThan(0))
+	err := runUserValFuncs(&user, uv.idGreaterThan(0))
 	if err != nil {
 		return err
 	}
@@ -184,13 +198,19 @@ func (uv *userValidator) defaultRememberToken(user *User) error {
 	return nil
 }
 
-func (uv *userValidator) idGreaterThan(n uint) userValidatorFunc {
+func (uv *userValidator) idGreaterThan(n uint) userValFunc {
 	return func(user *User) error {
 		if user.ID <= n {
 			return ErrInvalidID
 		}
 		return nil
 	}
+}
+
+func (uv *userValidator) normalizeEmail(user *User) error {
+	user.Email = strings.ToLower(user.Email)
+	user.Email = strings.TrimSpace(user.Email)
+	return nil
 }
 
 func newUserGorm(connectionInfo string) (*userGorm, error) {
