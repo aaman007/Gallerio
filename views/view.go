@@ -1,8 +1,9 @@
 package views
 
 import (
-	"go-web-dev-2/utils/errors"
+	"bytes"
 	"html/template"
+	"io"
 	"net/http"
 	"path/filepath"
 )
@@ -34,10 +35,10 @@ type View struct {
 }
 
 func (v *View) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	errors.Must(v.Render(w, nil))
+	v.Render(w, nil)
 }
 
-func (v *View) Render(w http.ResponseWriter, data interface{}) error {
+func (v *View) Render(w http.ResponseWriter, data interface{}) {
 	switch data.(type) {
 	case Data:
 		// pass
@@ -46,7 +47,12 @@ func (v *View) Render(w http.ResponseWriter, data interface{}) error {
 			Content: data,
 		}
 	}
-	return v.Template.ExecuteTemplate(w, v.Layout, data)
+	var buff bytes.Buffer
+	if err := v.Template.ExecuteTemplate(&buff, v.Layout, data); err != nil {
+		http.Error(w, AlertMessageGeneric, http.StatusInternalServerError)
+		return
+	}
+	io.Copy(w, &buff)
 }
 
 func layoutFiles() []string  {
