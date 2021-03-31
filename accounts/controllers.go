@@ -92,10 +92,10 @@ func (uc *UserController) signInUser(w http.ResponseWriter, user *User) error {
 		if err != nil {
 			return err
 		}
+		user.RememberToken = token
 		if err = uc.us.Update(user); err != nil {
 			return err
 		}
-		user.RememberToken = token
 	}
 	cookie := &http.Cookie{
 		Name: "remember_token",

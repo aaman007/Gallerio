@@ -5,6 +5,7 @@ import (
 	"gallerio/accounts"
 	"gallerio/core"
 	"gallerio/galleries"
+	"gallerio/middlewares"
 	"github.com/gorilla/mux"
 	"net/http"
 )
@@ -32,6 +33,10 @@ func main() {
 	galleriesController := galleries.NewGalleryController(services.Gallery)
 	coreController := core.NewStaticController()
 
+	loginRequiredMw := middlewares.LoginRequired{
+		UserService: services.User,
+	}
+
 	router := mux.NewRouter()
 
 	// Static Routes
@@ -39,14 +44,16 @@ func main() {
 	router.Handle("/contact", coreController.ContactView).Methods("GET")
 
 	// Accounts Routes
-	router.Handle("/signup", usersController.SignUpView).Methods("GET")
-	router.HandleFunc("/signup", usersController.SignUp).Methods("POST")
 	router.Handle("/signin", usersController.SignInView).Methods("GET")
 	router.HandleFunc("/signin", usersController.SignIn).Methods("POST")
+	router.Handle("/signup", usersController.SignUpView).Methods("GET")
+	router.HandleFunc("/signup", usersController.SignUp).Methods("POST")
 
 	// Galleries Routes
-	router.Handle("/galleries/new", galleriesController.New).Methods("GET")
-	router.HandleFunc("/galleries", galleriesController.Create).Methods("POST")
+	router.Handle("/galleries/new",
+		loginRequiredMw.Apply(galleriesController.New)).Methods("GET")
+	router.HandleFunc("/galleries",
+		loginRequiredMw.ApplyFunc(galleriesController.Create)).Methods("POST")
 
 	http.ListenAndServe(":8000", router)
 }

@@ -126,7 +126,7 @@ func (uv *userValidator) ByRememberToken(token string) (*User, error) {
 	if err := runUserValFuncs(user, uv.hashRememberToken); err != nil {
 		return nil, err
 	}
-	return uv.UserDB.ByRememberToken(user.RememberToken)
+	return uv.UserDB.ByRememberToken(user.RememberTokenHash)
 }
 
 func (uv *userValidator) Create(user *User) error {
@@ -155,6 +155,7 @@ func (uv *userValidator) Update(user *User) error {
 		uv.passwordMinLength,
 		uv.passwordBcrypt,
 		uv.passwordHashRequired,
+		uv.hashRememberToken,
 		uv.rememberTokenMinBytes,
 		uv.hashRememberToken,
 		uv.rememberTokenHashRequired,
