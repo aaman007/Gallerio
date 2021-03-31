@@ -1,0 +1,24 @@
+{{ define "content" }}
+    <div class="row">
+        <div class="col-md-10 offset-md-1">
+            <div class="card border-dark">
+                <div class="card-header bg-dark text-white text-center"><h5> Create A Gallery </h5></div>
+                <div class="card-body">
+                    {{ template "galleriesForm" }}
+                </div>
+            </div>
+        </div>
+    </div>
+{{ end }}
+
+{{ define "galleriesForm" }}
+    <form method="POST" action="/galleries">
+        <div class="mb-3">
+            <label for="id_name" class="form-label">Name</label>
+            <input type="text" name="title" class="form-control" id="id_title" aria-describedby="titleHelp">
+        </div>
+        <div class="text-center">
+            <button type="submit" class="btn btn-primary">Create</button>
+        </div>
+    </form>
+{{ end }}

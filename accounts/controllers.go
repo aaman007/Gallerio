@@ -24,6 +24,7 @@ type UserController struct {
 	us UserService
 }
 
+// POST /signup
 func (uc *UserController) SignUp(w http.ResponseWriter, req *http.Request) {
 	var data views.Data
 	var form SignUpForm
@@ -53,6 +54,7 @@ func (uc *UserController) SignUp(w http.ResponseWriter, req *http.Request) {
 	http.Redirect(w, req, "/", http.StatusSeeOther)
 }
 
+// POST /signin
 func (uc *UserController) SignIn(w http.ResponseWriter, req *http.Request) {
 	var data views.Data
 	var form SignInForm

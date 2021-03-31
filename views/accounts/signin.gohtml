@@ -1,28 +1,28 @@
 {{ define "content" }}
-    {{ template "signinForm" }}
-{{ end }}
-
-{{ define "signinForm" }}
     <div class="row">
         <div class="col-md-8 offset-md-2">
-            <div class="card">
-                <div class="card-header text-white bg-secondary text-center"> <h4 class="py-2"> Welcome Back! </h4> </div>
+            <div class="card border-dark">
+                <div class="card-header text-white bg-dark text-center"><h5> Welcome Back! </h5></div>
                 <div class="card-body">
-                    <form method="POST" action="/signin">
-                        <div class="mb-3">
-                            <label for="id_email" class="form-label">Email address</label>
-                            <input type="email" name="email" class="form-control" id="id_email" aria-describedby="emailHelp">
-                        </div>
-                        <div class="mb-3">
-                            <label for="id_password" class="form-label">Password</label>
-                            <input type="password" name="password" class="form-control" id="id_password">
-                        </div>
-                        <div class="text-center">
-                            <button type="submit" class="btn btn-primary">Sign In</button>
-                        </div>
-                    </form>
+                    {{ template "signinForm" }}
                 </div>
             </div>
         </div>
     </div>
+{{ end }}
+
+{{ define "signinForm" }}
+    <form method="POST" action="/signin">
+        <div class="mb-3">
+            <label for="id_email" class="form-label">Email address</label>
+            <input type="email" name="email" class="form-control" id="id_email" aria-describedby="emailHelp">
+        </div>
+        <div class="mb-3">
+            <label for="id_password" class="form-label">Password</label>
+            <input type="password" name="password" class="form-control" id="id_password">
+        </div>
+        <div class="text-center">
+            <button type="submit" class="btn btn-primary">Sign In</button>
+        </div>
+    </form>
 {{ end }}

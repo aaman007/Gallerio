@@ -16,13 +16,14 @@ func NewServices(connectionInfo string) (*Services, error) {
 
 	return &Services{
 		User: accounts.NewUserService(db),
+		Gallery: galleries.NewGalleryService(db),
 		db: db,
 	}, nil
 }
 
 type Services struct {
 	User accounts.UserService
-	Gallery galleries.Gallery
+	Gallery galleries.GalleryService
 	db *gorm.DB
 }
 
