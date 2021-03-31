@@ -12,8 +12,8 @@ import (
 
 func NewUsersController(us models2.UserService) *UsersController {
 	return &UsersController{
-		SignUpView: views.NewView("base", "accounts/signup"),
-		SignInView: views.NewView("base", "accounts/signin"),
+		SignUpView: views.NewView("base", "user/signup"),
+		SignInView: views.NewView("base", "user/signin"),
 		us: us,
 	}
 }

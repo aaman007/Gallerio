@@ -1,0 +1,72 @@
+{{ define "content" }}
+    <div class="row">
+        <div class="col-md-10 offset-md-1 text-center">
+            <h4> Update Gallery </h4>
+            <hr />
+        </div>
+
+        <div class="col-md-12 mt-4">
+            {{ template "updateGalleryForm" . }}
+        </div>
+    </div>
+    <div class="row mt-4">
+        <div class="col-md-1">
+            <label class="form-label">Images</label>
+        </div>
+        <div class="col-md-10">
+            {{ template "galleryImages" . }}
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-1">
+            <label class="form-label">Upload Images </label>
+        </div>
+        <div class="col-md-10">
+            {{ template "uploadImagesForm" . }}
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-10 offset-md-1">
+            <h5> Actions </h5> <hr/>
+            {{ template "deleteGalleryForm" . }}
+        </div>
+    </div>
+{{ end }}
+
+{{ define "updateGalleryForm" }}
+    <form method="POST" action="/galleries/{{.ID}}/update">
+        <div class="row align-items-center">
+            <div class="col-md-1">
+                <label for="id_title" class="col-form-label">Title</label>
+            </div>
+            <div class="col-md-10">
+                <input type="text" id="id_title" name="title" value="{{.Title}}" class="form-control"
+                       aria-describedby="titleHelpInline">
+            </div>
+            <div class="col-md-1 d-flex justify-content-center align-items-center">
+                <input type="submit" class="btn btn-sm btn-secondary" value="Update">
+            </div>
+        </div>
+    </form>
+{{ end }}
+
+{{ define "deleteGalleryForm" }}
+    <form class="mt-2" method="POST" action="/galleries/{{.ID}}/delete">
+        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+    </form>
+{{ end }}
+
+{{ define "uploadImagesForm" }}
+    <form action="galleries/{{.ID}}/images" method="POST" enctype="multipart/form-data">
+        <div class="mb-3">
+            <input class="form-control" type="file" id="images" name="images" multiple>
+            <input class="btn btn-sm btn-secondary mt-3" type="submit" value="Upload">
+        </div>
+    </form>
+{{ end }}
+
+{{ define "galleryImages" }}
+    Your Images.........
+{{ end }}

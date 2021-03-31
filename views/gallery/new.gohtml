@@ -4,14 +4,14 @@
             <div class="card border-dark">
                 <div class="card-header bg-dark text-white text-center"><h5> Create A Gallery </h5></div>
                 <div class="card-body">
-                    {{ template "galleriesForm" }}
+                    {{ template "galleryForm" }}
                 </div>
             </div>
         </div>
     </div>
 {{ end }}
 
-{{ define "galleriesForm" }}
+{{ define "galleryForm" }}
     <form method="POST" action="/galleries">
         <div class="mb-3">
             <label for="id_name" class="form-label">Title</label>

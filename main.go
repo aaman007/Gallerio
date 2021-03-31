@@ -67,5 +67,5 @@ func main() {
 	router.HandleFunc("/galleries/{id:[0-9]+}/delete",
 		loginRequiredMw.ApplyFunc(galleriesController.Delete)).Methods("POST")
 
-	log.Fatal(http.ListenAndServe(":8003", assignUserMw.Apply(router)))
+	log.Fatal(http.ListenAndServe(":8005", assignUserMw.Apply(router)))
 }
