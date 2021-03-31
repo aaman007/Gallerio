@@ -21,14 +21,14 @@ func main() {
 		dbHost, dbPort, dbUser, dbPassword, dbName,
 	)
 
-	us, err := accounts.NewUserService(psqlInfo)
+	services, err := core.NewServices(psqlInfo)
 	if err != nil {
 		panic(err)
 	}
-	defer us.Close()
-	us.AutoMigrate()
+	defer services.Close()
+	services.AutoMigrate()
 
-	usersController := accounts.NewUserController(us)
+	usersController := accounts.NewUserController(services.User)
 	coreController := core.NewStaticController()
 
 	router := mux.NewRouter()

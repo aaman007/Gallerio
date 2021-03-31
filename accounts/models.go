@@ -40,13 +40,6 @@ type UserDB interface {
 	Create(user *User) error
 	Update(user *User) error
 	Delete(id uint) error
-
-	// Closing DB connection
-	Close() error
-
-	// Helper for migrations
-	AutoMigrate() error
-	DestructiveReset() error
 }
 
 type UserService interface {
@@ -54,18 +47,14 @@ type UserService interface {
 	UserDB
 }
 
-func NewUserService(connectionInfo string) (UserService, error) {
-	ug, err := newUserGorm(connectionInfo)
-	if err != nil {
-		return nil, err
-	}
-
+func NewUserService(db *gorm.DB) UserService {
+	ug := &userGorm{db}
 	hmac := hash.NewHMAC(hmacSecretKey)
 	uv := newUserValidator(ug, hmac)
 
 	return &userService{
 		UserDB: uv,
-	}, nil
+	}
 }
 
 type userService struct {
@@ -312,39 +301,27 @@ func (uv *userValidator) rememberTokenHashRequired(user *User) error {
 	return nil
 }
 
-func newUserGorm(connectionInfo string) (*userGorm, error) {
-	db, err := gorm.Open("postgres", connectionInfo)
-	if err != nil {
-		return nil, err
-	}
-	db.LogMode(true)
-
-	return &userGorm{
-		DB: db,
-	}, nil
-}
-
 type userGorm struct {
-	DB *gorm.DB
+	db *gorm.DB
 }
 
 func (ug *userGorm) ByID(id uint) (*User, error) {
 	var user User
-	db := ug.DB.Where("id = ?", id)
+	db := ug.db.Where("id = ?", id)
 	err := first(db, &user)
 	return &user, err
 }
 
 func (ug *userGorm) ByEmail(email string) (*User, error) {
 	var user User
-	db := ug.DB.Where("email = ?", email)
+	db := ug.db.Where("email = ?", email)
 	err := first(db, &user)
 	return &user, err
 }
 
 func (ug *userGorm) ByRememberToken(hashedToken string) (*User, error) {
 	var user User
-	err := first(ug.DB.Where("remember_token_hash = ?", hashedToken), &user)
+	err := first(ug.db.Where("remember_token_hash = ?", hashedToken), &user)
 	if err != nil {
 		return nil, err
 	}
@@ -352,34 +329,16 @@ func (ug *userGorm) ByRememberToken(hashedToken string) (*User, error) {
 }
 
 func (ug *userGorm) Create(user *User) error {
-	return ug.DB.Create(user).Error
+	return ug.db.Create(user).Error
 }
 
 func (ug *userGorm) Update(user *User) error {
-	return ug.DB.Save(user).Error
+	return ug.db.Save(user).Error
 }
 
 func (ug *userGorm) Delete(id uint) error {
 	user := User{Model: gorm.Model{ID: id}}
-	return ug.DB.Delete(&user).Error
-}
-
-func (ug *userGorm) Close() error {
-	return ug.DB.Close()
-}
-
-func (ug *userGorm) DestructiveReset() error {
-	if err := ug.DB.DropTableIfExists(&User{}).Error; err != nil {
-		return err
-	}
-	return ug.AutoMigrate()
-}
-
-func (ug *userGorm) AutoMigrate() error {
-	if err := ug.DB.AutoMigrate(&User{}).Error; err != nil {
-		return err
-	}
-	return nil
+	return ug.db.Delete(&user).Error
 }
 
 func first(db *gorm.DB, dst interface{}) error {
