@@ -53,11 +53,14 @@ func main() {
 	router.Handle("/galleries/new",
 		loginRequiredMw.Apply(galleriesController.New)).Methods("GET")
 	router.HandleFunc("/galleries",
+		loginRequiredMw.ApplyFunc(galleriesController.Index)).Methods("GET")
+	router.HandleFunc("/galleries",
 		loginRequiredMw.ApplyFunc(galleriesController.Create)).Methods("POST")
 	router.HandleFunc("/galleries/{id:[0-9]+}",
 		galleriesController.Show).Methods("GET").Name(galleries.ShowGalleryName)
 	router.HandleFunc("/galleries/{id:[0-9]+}/edit",
-		loginRequiredMw.ApplyFunc(galleriesController.Edit)).Methods("GET")
+		loginRequiredMw.ApplyFunc(galleriesController.Edit)).
+		Methods("GET").Name(galleries.EditGalleryName)
 	router.HandleFunc("/galleries/{id:[0-9]+}/update",
 		loginRequiredMw.ApplyFunc(galleriesController.Update)).Methods("POST")
 	router.HandleFunc("/galleries/{id:[0-9]+}/delete",

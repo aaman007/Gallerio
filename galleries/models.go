@@ -16,6 +16,9 @@ type GalleryService interface {
 }
 
 type GalleryDB interface {
+	// Methods for multiple gallery queries
+	ByUserID(id uint) ([]Gallery, error)
+
 	// Methods for single gallery queries
 	ByID(id uint) (*Gallery, error)
 
@@ -97,6 +100,12 @@ var _ GalleryDB = &galleryGorm{}
 
 type galleryGorm struct {
 	db *gorm.DB
+}
+
+func (gg *galleryGorm) ByUserID(userId uint) ([]Gallery, error) {
+	var galleries []Gallery
+	gg.db.Where("user_id = ?", userId).Find(&galleries)
+	return galleries, nil
 }
 
 func (gg *galleryGorm) ByID(id uint) (*Gallery, error) {

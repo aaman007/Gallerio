@@ -14,11 +14,13 @@ import (
 
 var (
 	ShowGalleryName = "show_gallery"
+	EditGalleryName = "show_gallery"
 )
 
 func NewGalleryController(gs GalleryService, router *mux.Router) *GalleryController {
 	return &GalleryController{
 		New: views.NewView("base", "galleries/new"),
+		IndexView: views.NewView("base", "galleries/index"),
 		ShowView: views.NewView("base", "galleries/show"),
 		EditView: views.NewView("base", "galleries/edit"),
 		router: router,
@@ -28,10 +30,23 @@ func NewGalleryController(gs GalleryService, router *mux.Router) *GalleryControl
 
 type GalleryController struct {
 	New *views.View
+	IndexView *views.View
 	ShowView *views.View
 	EditView *views.View
 	router *mux.Router
 	gs GalleryService
+}
+
+// POST /galleries
+func (gc *GalleryController) Index(w http.ResponseWriter, req *http.Request) {
+	user := context.User(req.Context())
+	galleries, err := gc.gs.ByUserID(user.ID)
+	if err != nil {
+		http.Error(w, views.AlertMessageGeneric, http.StatusInternalServerError)
+		return
+	}
+	data := views.Data{Content: galleries}
+	gc.IndexView.Render(w, data)
 }
 
 // POST /galleries
@@ -57,7 +72,7 @@ func (gc *GalleryController) Create(w http.ResponseWriter, req *http.Request) {
 		gc.New.Render(w, data)
 		return
 	}
-	url, err := gc.router.Get(ShowGalleryName).URL("id", fmt.Sprintf("%v", gallery.ID))
+	url, err := gc.router.Get(EditGalleryName).URL("id", fmt.Sprintf("%v", gallery.ID))
 	if err != nil {
 		http.Redirect(w, req, "/", http.StatusSeeOther)
 		return
@@ -118,11 +133,7 @@ func (gc *GalleryController) Update(w http.ResponseWriter, req *http.Request) {
 		gc.EditView.Render(w, data)
 		return
 	}
-	data.Alert = &views.Alert{
-		Level: views.AlertLevelSuccess,
-		Message: "Successfully updated gallery",
-	}
-	gc.EditView.Render(w, data)
+	http.Redirect(w, req, "/galleries", http.StatusSeeOther)
 }
 
 // POST /galleries/{id}/delete
@@ -144,7 +155,7 @@ func (gc *GalleryController) Delete(w http.ResponseWriter, req *http.Request) {
 		gc.EditView.Render(w, data)
 		return
 	}
-	fmt.Fprintln(w, "deleted")
+	http.Redirect(w, req, "/galleries", http.StatusSeeOther)
 }
 
 func (gc *GalleryController) galleryByID(w http.ResponseWriter, req *http.Request) (*Gallery, error) {
