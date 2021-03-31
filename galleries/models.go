@@ -1,7 +1,7 @@
 package galleries
 
 import (
-	"gallerio/utils/errors"
+	"gallerio/utils/models"
 	"github.com/jinzhu/gorm"
 )
 
@@ -16,6 +16,10 @@ type GalleryService interface {
 }
 
 type GalleryDB interface {
+	// Methods for single gallery queries
+	ByID(id uint) (*Gallery, error)
+
+	// Methods for modifying Gallery
 	Create(gallery *Gallery) error
 }
 
@@ -57,14 +61,14 @@ func (gv *galleryValidator) Create(gallery *Gallery) error {
 
 func (gv *galleryValidator) userIDRequired(gallery *Gallery) error {
 	if gallery.UserID <= 0 {
-		return errors.ErrUserIDRequired
+		return models.ErrUserIDRequired
 	}
 	return nil
 }
 
 func (gv *galleryValidator) titleRequired(gallery *Gallery) error {
 	if gallery.Title == "" {
-		return errors.ErrTitleRequired
+		return models.ErrTitleRequired
 	}
 	return nil
 }
@@ -73,6 +77,13 @@ var _ GalleryDB = &galleryGorm{}
 
 type galleryGorm struct {
 	db *gorm.DB
+}
+
+func (gg *galleryGorm) ByID(id uint) (*Gallery, error) {
+	var gallery Gallery
+	db := gg.db.Where("id = ?", id)
+	err := models.First(db, &gallery)
+	return &gallery, err
 }
 
 func (gg *galleryGorm) Create(gallery *Gallery) error {

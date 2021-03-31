@@ -4,21 +4,31 @@ import (
 	"fmt"
 	"gallerio/utils/context"
 	"gallerio/utils/forms"
+	"gallerio/utils/models"
 	"gallerio/views"
+	"github.com/gorilla/mux"
 	"log"
 	"net/http"
+	"strconv"
 )
 
+var (
+	ShowGalleryName = "show_gallery"
+)
 
-func NewGalleryController(gs GalleryService) *GalleryController {
+func NewGalleryController(gs GalleryService, router *mux.Router) *GalleryController {
 	return &GalleryController{
 		New: views.NewView("base", "galleries/new"),
+		ShowView: views.NewView("base", "galleries/show"),
+		router: router,
 		gs: gs,
 	}
 }
 
 type GalleryController struct {
 	New *views.View
+	ShowView *views.View
+	router *mux.Router
 	gs GalleryService
 }
 
@@ -45,6 +55,35 @@ func (gc *GalleryController) Create(w http.ResponseWriter, req *http.Request) {
 		gc.New.Render(w, data)
 		return
 	}
-	fmt.Fprintln(w, gallery)
-	// http.Redirect(w, req, "/", http.StatusSeeOther)
+	url, err := gc.router.Get(ShowGalleryName).URL("id", fmt.Sprintf("%v", gallery.ID))
+	if err != nil {
+		http.Redirect(w, req, "/", http.StatusSeeOther)
+		return
+	}
+	http.Redirect(w, req, url.Path, http.StatusSeeOther)
+}
+
+// GET /galleries/{id}
+func (gc *GalleryController) Show(w http.ResponseWriter, req *http.Request) {
+	params := mux.Vars(req)
+	id, err := strconv.Atoi(params["id"])
+	if err != nil {
+		http.Error(w, "Invalid Gallery ID", http.StatusBadRequest)
+		return
+	}
+
+	gallery, err := gc.gs.ByID(uint(id))
+	if err != nil {
+		switch err {
+		case models.ErrNotFound:
+			http.Error(w, "Gallery Not Found", http.StatusNotFound)
+		default:
+			http.Error(w, "Server Error", http.StatusInternalServerError)
+		}
+		return
+	}
+	data := views.Data{
+		Content: gallery,
+	}
+	gc.ShowView.Render(w, data)
 }

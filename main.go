@@ -29,15 +29,14 @@ func main() {
 	defer services.Close()
 	services.AutoMigrate()
 
+	router := mux.NewRouter()
 	usersController := accounts.NewUserController(services.User)
-	galleriesController := galleries.NewGalleryController(services.Gallery)
+	galleriesController := galleries.NewGalleryController(services.Gallery, router)
 	coreController := core.NewStaticController()
 
 	loginRequiredMw := middlewares.LoginRequired{
 		UserService: services.User,
 	}
-
-	router := mux.NewRouter()
 
 	// Static Routes
 	router.Handle("/", coreController.HomeView).Methods("GET")
@@ -54,6 +53,8 @@ func main() {
 		loginRequiredMw.Apply(galleriesController.New)).Methods("GET")
 	router.HandleFunc("/galleries",
 		loginRequiredMw.ApplyFunc(galleriesController.Create)).Methods("POST")
+	router.HandleFunc("/galleries/{id:[0-9]+}",
+		galleriesController.Show).Methods("GET").Name(galleries.ShowGalleryName)
 
 	http.ListenAndServe(":8000", router)
 }

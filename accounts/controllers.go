@@ -1,8 +1,8 @@
 package accounts
 
 import (
-	"gallerio/utils/errors"
 	"gallerio/utils/forms"
+	"gallerio/utils/models"
 	"gallerio/utils/rand"
 	"gallerio/views"
 	"log"
@@ -69,7 +69,7 @@ func (uc *UserController) SignIn(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		log.Println(err)
 		switch err {
-		case errors.ErrNotFound:
+		case models.ErrNotFound:
 			data.AlertError("Email Address is incorrect")
 		default:
 			data.SetAlert(err)
