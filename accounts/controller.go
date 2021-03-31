@@ -53,7 +53,7 @@ func (uc *UserController) SignIn(w http.ResponseWriter, req *http.Request) {
 		switch err {
 		case ErrNotFound:
 			http.Error(w, "Email Address is incorrect", http.StatusBadRequest)
-		case ErrInvalidPassword:
+		case ErrPasswordIncorrect:
 			http.Error(w, "Password is incorrect", http.StatusBadRequest)
 		default:
 			http.Error(w, err.Error(), http.StatusInternalServerError)
