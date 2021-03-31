@@ -7,6 +7,7 @@ import (
 	"gallerio/galleries"
 	"gallerio/middlewares"
 	"github.com/gorilla/mux"
+	"log"
 	"net/http"
 )
 
@@ -55,6 +56,12 @@ func main() {
 		loginRequiredMw.ApplyFunc(galleriesController.Create)).Methods("POST")
 	router.HandleFunc("/galleries/{id:[0-9]+}",
 		galleriesController.Show).Methods("GET").Name(galleries.ShowGalleryName)
+	router.HandleFunc("/galleries/{id:[0-9]+}/edit",
+		loginRequiredMw.ApplyFunc(galleriesController.Edit)).Methods("GET")
+	router.HandleFunc("/galleries/{id:[0-9]+}/update",
+		loginRequiredMw.ApplyFunc(galleriesController.Update)).Methods("POST")
+	router.HandleFunc("/galleries/{id:[0-9]+}/delete",
+		loginRequiredMw.ApplyFunc(galleriesController.Delete)).Methods("POST")
 
-	http.ListenAndServe(":8000", router)
+	log.Fatal(http.ListenAndServe(":8002", router))
 }

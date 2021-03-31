@@ -1,0 +1,29 @@
+{{ define "content" }}
+    <div class="row">
+        <div class="col-md-10 offset-md-1">
+            <div class="card border-dark">
+                <div class="card-header bg-dark text-white text-center"><h5> Update Gallery </h5></div>
+                <div class="card-body">
+                    {{ template "updateGalleriesForm" . }}
+                </div>
+            </div>
+        </div>
+    </div>
+{{ end }}
+
+{{ define "updateGalleriesForm" }}
+    <form method="POST" action="/galleries/{{.ID}}/update">
+        <div class="mb-3">
+            <label for="id_name" class="form-label">Title</label>
+            <input type="text" name="title" class="form-control" id="id_title" value="{{.Title}}" aria-describedby="titleHelp">
+        </div>
+        <div class="text-center">
+            <button type="submit" class="btn btn-primary">Update</button>
+        </div>
+    </form>
+    <form class="mt-2" method="POST" action="/galleries/{{.ID}}/delete">
+        <div class="text-center">
+            <button type="submit" class="btn btn-danger">Delete</button>
+        </div>
+    </form>
+{{ end }}
