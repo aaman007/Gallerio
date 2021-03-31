@@ -1,10 +1,10 @@
 package accounts
 
 import (
-	"go-web-dev-2/utils/errors"
-	"go-web-dev-2/utils/forms"
-	"go-web-dev-2/utils/rand"
-	"go-web-dev-2/views"
+	"gallerio/utils/errors"
+	"gallerio/utils/forms"
+	"gallerio/utils/rand"
+	"gallerio/views"
 	"log"
 	"net/http"
 )

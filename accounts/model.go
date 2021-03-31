@@ -1,11 +1,11 @@
 package accounts
 
 import (
+	"gallerio/utils/errors"
+	"gallerio/utils/hash"
+	"gallerio/utils/rand"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
-	"go-web-dev-2/utils/errors"
-	"go-web-dev-2/utils/hash"
-	"go-web-dev-2/utils/rand"
 	"golang.org/x/crypto/bcrypt"
 	"regexp"
 	"strings"

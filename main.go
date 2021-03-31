@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
+	"gallerio/accounts"
+	"gallerio/core"
 	"github.com/gorilla/mux"
-	"go-web-dev-2/accounts"
-	"go-web-dev-2/core"
 	"net/http"
 )
 

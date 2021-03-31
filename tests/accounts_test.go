@@ -2,12 +2,12 @@ package tests
 
 import (
 	"fmt"
-	"go-web-dev-2/accounts"
+	"gallerio/accounts"
 	"testing"
 	"time"
 )
 
-func testingUserService() (*accounts.Service, error) {
+func testingUserService() (accounts.UserService, error) {
 	const (
 		dbHost = "localhost"
 		dbPort = 5432
@@ -19,11 +19,11 @@ func testingUserService() (*accounts.Service, error) {
 		dbHost, dbPort, dbUser, dbPassword, dbName,
 	)
 
-	us, err := accounts.NewService(psqlInfo)
+	us, err := accounts.NewUserService(psqlInfo)
 	if err != nil {
 		return nil, err
 	}
-	us.DB.LogMode(false)
+	// us.DB.LogMode(false)
 	us.DestructiveReset()
 	return us, nil
 }

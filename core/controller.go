@@ -1,6 +1,6 @@
 package core
 
-import "go-web-dev-2/views"
+import "gallerio/views"
 
 func NewStaticController() *StaticController {
 	return &StaticController{
