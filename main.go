@@ -2,9 +2,7 @@ package main
 
 import (
 	"fmt"
-	"gallerio/accounts"
-	"gallerio/core"
-	"gallerio/galleries"
+	"gallerio/controllers"
 	"gallerio/middlewares"
 	"github.com/gorilla/mux"
 	"log"
@@ -23,7 +21,7 @@ func main() {
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 		dbHost, dbPort, dbUser, dbPassword, dbName,
 	)
-	services, err := core.NewServices(psqlInfo)
+	services, err := controllers.NewServices(psqlInfo)
 	if err != nil {
 		panic(err)
 	}
@@ -31,9 +29,9 @@ func main() {
 	services.AutoMigrate()
 
 	router := mux.NewRouter()
-	usersController := accounts.NewUserController(services.User)
-	galleriesController := galleries.NewGalleryController(services.Gallery, router)
-	coreController := core.NewStaticController()
+	usersController := controllers.NewUsersController(services.User)
+	galleriesController := controllers.NewGalleriesController(services.Gallery, router)
+	coreController := controllers.NewStaticController()
 
 	loginRequiredMw := middlewares.LoginRequired{
 		UserService: services.User,
@@ -57,10 +55,10 @@ func main() {
 	router.HandleFunc("/galleries",
 		loginRequiredMw.ApplyFunc(galleriesController.Create)).Methods("POST")
 	router.HandleFunc("/galleries/{id:[0-9]+}",
-		galleriesController.Show).Methods("GET").Name(galleries.ShowGalleryName)
+		galleriesController.Show).Methods("GET").Name(controllers.ShowGalleryName)
 	router.HandleFunc("/galleries/{id:[0-9]+}/edit",
 		loginRequiredMw.ApplyFunc(galleriesController.Edit)).
-		Methods("GET").Name(galleries.EditGalleryName)
+		Methods("GET").Name(controllers.EditGalleryName)
 	router.HandleFunc("/galleries/{id:[0-9]+}/update",
 		loginRequiredMw.ApplyFunc(galleriesController.Update)).Methods("POST")
 	router.HandleFunc("/galleries/{id:[0-9]+}/delete",

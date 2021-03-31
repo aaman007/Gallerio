@@ -2,6 +2,7 @@ package views
 
 import (
 	"bytes"
+	"gallerio/utils/context"
 	"html/template"
 	"io"
 	"net/http"
@@ -49,10 +50,7 @@ func (v *View) Render(w http.ResponseWriter, req *http.Request, data interface{}
 		}
 	}
 
-	// TODO: Change Code Structure to fix this
-	_data.User = struct {
-		Name string
-	}{Name: "Amanur"}
+	_data.User = context.User(req.Context())
 
 	var buff bytes.Buffer
 	if err := v.Template.ExecuteTemplate(&buff, v.Layout, _data); err != nil {

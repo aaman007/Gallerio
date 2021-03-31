@@ -1,8 +1,7 @@
-package core
+package controllers
 
 import (
-	"gallerio/accounts"
-	"gallerio/galleries"
+	"gallerio/models"
 	"github.com/jinzhu/gorm"
 )
 
@@ -15,16 +14,16 @@ func NewServices(connectionInfo string) (*Services, error) {
 	// db.LogMode(true)
 
 	return &Services{
-		User: accounts.NewUserService(db),
-		Gallery: galleries.NewGalleryService(db),
-		db: db,
+		User:    models.NewUserService(db),
+		Gallery: models.NewGalleryService(db),
+		db:      db,
 	}, nil
 }
 
 type Services struct {
-	User accounts.UserService
-	Gallery galleries.GalleryService
-	db *gorm.DB
+	User    models.UserService
+	Gallery models.GalleryService
+	db      *gorm.DB
 }
 
 func (s *Services) Close() error {
@@ -32,7 +31,7 @@ func (s *Services) Close() error {
 }
 
 func (s *Services) DestructiveReset() error {
-	err := s.db.DropTableIfExists(&accounts.User{}, &galleries.Gallery{}).Error
+	err := s.db.DropTableIfExists(&models.User{}, &models.Gallery{}).Error
 	if err != nil {
 		return err
 	}
@@ -40,5 +39,5 @@ func (s *Services) DestructiveReset() error {
 }
 
 func (s *Services) AutoMigrate() error {
-	return s.db.AutoMigrate(&accounts.User{}, &galleries.Gallery{}).Error
+	return s.db.AutoMigrate(&models.User{}, &models.Gallery{}).Error
 }

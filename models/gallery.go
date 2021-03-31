@@ -1,7 +1,6 @@
-package galleries
+package models
 
 import (
-	"gallerio/utils/models"
 	"github.com/jinzhu/gorm"
 )
 
@@ -40,7 +39,7 @@ type galleryService struct {
 
 type galleryValFunc func(gallery *Gallery) error
 
-func runUserValFuncs(user *Gallery, fns ...galleryValFunc) error {
+func runGalleryValFuncs(user *Gallery, fns ...galleryValFunc) error {
 	for _, fn := range fns {
 		if err := fn(user); err != nil {
 			return err
@@ -54,7 +53,7 @@ type galleryValidator struct {
 }
 
 func (gv *galleryValidator) Create(gallery *Gallery) error {
-	err := runUserValFuncs(gallery,
+	err := runGalleryValFuncs(gallery,
 		gv.userIDRequired,
 		gv.titleRequired,
 	)
@@ -65,7 +64,7 @@ func (gv *galleryValidator) Create(gallery *Gallery) error {
 }
 
 func (gv *galleryValidator) Update(gallery *Gallery) error {
-	err := runUserValFuncs(gallery,
+	err := runGalleryValFuncs(gallery,
 		gv.userIDRequired,
 		gv.titleRequired,
 	)
@@ -77,21 +76,21 @@ func (gv *galleryValidator) Update(gallery *Gallery) error {
 
 func (gv *galleryValidator) Delete(id uint) error {
 	if id <= 0 {
-		return models.ErrIDInvalid
+		return ErrIDInvalid
 	}
 	return gv.GalleryDB.Delete(id)
 }
 
 func (gv *galleryValidator) userIDRequired(gallery *Gallery) error {
 	if gallery.UserID <= 0 {
-		return models.ErrUserIDRequired
+		return ErrUserIDRequired
 	}
 	return nil
 }
 
 func (gv *galleryValidator) titleRequired(gallery *Gallery) error {
 	if gallery.Title == "" {
-		return models.ErrTitleRequired
+		return ErrTitleRequired
 	}
 	return nil
 }
@@ -111,7 +110,7 @@ func (gg *galleryGorm) ByUserID(userId uint) ([]Gallery, error) {
 func (gg *galleryGorm) ByID(id uint) (*Gallery, error) {
 	var gallery Gallery
 	db := gg.db.Where("id = ?", id)
-	err := models.First(db, &gallery)
+	err := First(db, &gallery)
 	return &gallery, err
 }
 

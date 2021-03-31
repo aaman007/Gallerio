@@ -1,4 +1,4 @@
-package accounts
+package forms
 
 type SignUpForm struct {
 	Name string `schema:"name"`

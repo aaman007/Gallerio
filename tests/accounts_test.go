@@ -2,12 +2,12 @@ package tests
 
 import (
 	"fmt"
-	"gallerio/accounts"
+	"gallerio/models"
 	"testing"
 	"time"
 )
 
-func testingUserService() (accounts.UserService, error) {
+func testingUserService() (models.UserService, error) {
 	const (
 		dbHost = "localhost"
 		dbPort = 5432
@@ -19,7 +19,7 @@ func testingUserService() (accounts.UserService, error) {
 		dbHost, dbPort, dbUser, dbPassword, dbName,
 	)
 
-	us, err := accounts.NewUserService(psqlInfo)
+	us, err := models.NewUserService(psqlInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -34,7 +34,7 @@ func TestCreateUser(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	user := accounts.User{
+	user := models.User{
 		Name: "Amanur Rahman",
 		Email: "aaman007.liilab@gmail.com",
 	}

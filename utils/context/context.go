@@ -2,7 +2,7 @@ package context
 
 import (
 	"context"
-	"gallerio/accounts"
+	"gallerio/models"
 )
 
 var (
@@ -11,13 +11,13 @@ var (
 
 type privateKey string
 
-func WithUser(ctx context.Context, user *accounts.User) context.Context {
+func WithUser(ctx context.Context, user *models.User) context.Context {
 	return context.WithValue(ctx, userKey, user)
 }
 
-func User(ctx context.Context) *accounts.User {
+func User(ctx context.Context) *models.User {
 	if temp := ctx.Value(userKey); temp != nil {
-		if user, ok := temp.(*accounts.User); ok {
+		if user, ok := temp.(*models.User); ok {
 			return user
 		}
 	}

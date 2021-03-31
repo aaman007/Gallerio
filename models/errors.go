@@ -3,19 +3,19 @@ package models
 import "strings"
 
 const (
-	ErrNotFound modelError = "models: resource not found"
+	ErrNotFound          modelError = "models: resource not found"
 	ErrPasswordIncorrect modelError = "models: incorrect password provided"
-	ErrPasswordRequired modelError = "models: password is required"
-	ErrPasswordTooShort modelError = "models: password must be at least 8 characters"
-	ErrEmailRequired modelError = "models: email address is required"
-	ErrEmailInvalid modelError = "models: email address is invalid"
-	ErrEmailTaken modelError = "models: email address is taken"
-	ErrTitleRequired modelError = "models: title is required"
+	ErrPasswordRequired  modelError = "models: password is required"
+	ErrPasswordTooShort  modelError = "models: password must be at least 8 characters"
+	ErrEmailRequired     modelError = "models: email address is required"
+	ErrEmailInvalid      modelError = "models: email address is invalid"
+	ErrEmailTaken        modelError = "models: email address is taken"
+	ErrTitleRequired     modelError = "models: title is required"
 
-	ErrIDInvalid privateError = "models: ID provided was invalid"
+	ErrIDInvalid             privateError = "models: ID provided was invalid"
 	ErrRememberTokenTooShort privateError = "models: remember token must be at least 32 bytes"
 	ErrRememberTokenRequired privateError = "models: remember token is required"
-	ErrUserIDRequired privateError = "models: user ID was not provided"
+	ErrUserIDRequired        privateError = "models: user ID was not provided"
 )
 
 type modelError string

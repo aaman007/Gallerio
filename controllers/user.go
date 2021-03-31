@@ -1,8 +1,8 @@
-package accounts
+package controllers
 
 import (
-	"gallerio/utils/forms"
-	"gallerio/utils/models"
+	forms2 "gallerio/forms"
+	models2 "gallerio/models"
 	"gallerio/utils/rand"
 	"gallerio/views"
 	"log"
@@ -10,32 +10,32 @@ import (
 )
 
 
-func NewUserController(us UserService) *UserController {
-	return &UserController{
+func NewUsersController(us models2.UserService) *UsersController {
+	return &UsersController{
 		SignUpView: views.NewView("base", "accounts/signup"),
 		SignInView: views.NewView("base", "accounts/signin"),
 		us: us,
 	}
 }
 
-type UserController struct {
+type UsersController struct {
 	SignUpView *views.View
 	SignInView *views.View
-	us UserService
+	us         models2.UserService
 }
 
 // POST /signup
-func (uc *UserController) SignUp(w http.ResponseWriter, req *http.Request) {
+func (uc *UsersController) SignUp(w http.ResponseWriter, req *http.Request) {
 	var data views.Data
-	var form SignUpForm
-	if err := forms.ParseForm(req, &form); err != nil {
+	var form forms2.SignUpForm
+	if err := forms2.ParseForm(req, &form); err != nil {
 		log.Println(err)
 		data.SetAlert(err)
 		uc.SignUpView.Render(w, req, data)
 		return
 	}
 
-	user := User{
+	user := models2.User{
 		Name: form.Name,
 		Username: form.Username,
 		Email: form.Email,
@@ -55,10 +55,10 @@ func (uc *UserController) SignUp(w http.ResponseWriter, req *http.Request) {
 }
 
 // POST /signin
-func (uc *UserController) SignIn(w http.ResponseWriter, req *http.Request) {
+func (uc *UsersController) SignIn(w http.ResponseWriter, req *http.Request) {
 	var data views.Data
-	var form SignInForm
-	if err := forms.ParseForm(req, &form); err != nil {
+	var form forms2.SignInForm
+	if err := forms2.ParseForm(req, &form); err != nil {
 		log.Println(err)
 		data.SetAlert(err)
 		uc.SignInView.Render(w, req, data)
@@ -69,7 +69,7 @@ func (uc *UserController) SignIn(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		log.Println(err)
 		switch err {
-		case models.ErrNotFound:
+		case models2.ErrNotFound:
 			data.AlertError("Email Address is incorrect")
 		default:
 			data.SetAlert(err)
@@ -86,7 +86,7 @@ func (uc *UserController) SignIn(w http.ResponseWriter, req *http.Request) {
 	http.Redirect(w, req, "/", http.StatusSeeOther)
 }
 
-func (uc *UserController) signInUser(w http.ResponseWriter, user *User) error {
+func (uc *UsersController) signInUser(w http.ResponseWriter, user *models2.User) error {
 	if user.RememberToken == "" {
 		token, err := rand.RememberToken()
 		if err != nil {

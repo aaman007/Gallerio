@@ -1,10 +1,10 @@
-package galleries
+package controllers
 
 import (
 	"fmt"
+	forms2 "gallerio/forms"
+	models2 "gallerio/models"
 	"gallerio/utils/context"
-	"gallerio/utils/forms"
-	"gallerio/utils/models"
 	"gallerio/views"
 	"github.com/gorilla/mux"
 	"log"
@@ -17,8 +17,8 @@ var (
 	EditGalleryName = "show_gallery"
 )
 
-func NewGalleryController(gs GalleryService, router *mux.Router) *GalleryController {
-	return &GalleryController{
+func NewGalleriesController(gs models2.GalleryService, router *mux.Router) *GalleriesController {
+	return &GalleriesController{
 		New: views.NewView("base", "galleries/new"),
 		IndexView: views.NewView("base", "galleries/index"),
 		ShowView: views.NewView("base", "galleries/show"),
@@ -28,17 +28,17 @@ func NewGalleryController(gs GalleryService, router *mux.Router) *GalleryControl
 	}
 }
 
-type GalleryController struct {
-	New *views.View
+type GalleriesController struct {
+	New       *views.View
 	IndexView *views.View
-	ShowView *views.View
-	EditView *views.View
-	router *mux.Router
-	gs GalleryService
+	ShowView  *views.View
+	EditView  *views.View
+	router    *mux.Router
+	gs        models2.GalleryService
 }
 
 // POST /galleries
-func (gc *GalleryController) Index(w http.ResponseWriter, req *http.Request) {
+func (gc *GalleriesController) Index(w http.ResponseWriter, req *http.Request) {
 	user := context.User(req.Context())
 	galleries, err := gc.gs.ByUserID(user.ID)
 	if err != nil {
@@ -50,10 +50,10 @@ func (gc *GalleryController) Index(w http.ResponseWriter, req *http.Request) {
 }
 
 // POST /galleries
-func (gc *GalleryController) Create(w http.ResponseWriter, req *http.Request) {
+func (gc *GalleriesController) Create(w http.ResponseWriter, req *http.Request) {
 	var data views.Data
-	var form GalleryForm
-	if err := forms.ParseForm(req, &form); err != nil {
+	var form forms2.GalleryForm
+	if err := forms2.ParseForm(req, &form); err != nil {
 		log.Println(err)
 		data.SetAlert(err)
 		gc.New.Render(w, req, data)
@@ -62,7 +62,7 @@ func (gc *GalleryController) Create(w http.ResponseWriter, req *http.Request) {
 
 	user := context.User(req.Context())
 
-	gallery := Gallery{
+	gallery := models2.Gallery{
 		Title: form.Title,
 		UserID: user.ID,
 	}
@@ -81,7 +81,7 @@ func (gc *GalleryController) Create(w http.ResponseWriter, req *http.Request) {
 }
 
 // GET /galleries/{id}
-func (gc *GalleryController) Show(w http.ResponseWriter, req *http.Request) {
+func (gc *GalleriesController) Show(w http.ResponseWriter, req *http.Request) {
 	gallery, err := gc.galleryByID(w, req)
 	if err != nil {
 		return
@@ -91,7 +91,7 @@ func (gc *GalleryController) Show(w http.ResponseWriter, req *http.Request) {
 }
 
 // GET /galleries/{id}/edit
-func (gc *GalleryController) Edit(w http.ResponseWriter, req *http.Request) {
+func (gc *GalleriesController) Edit(w http.ResponseWriter, req *http.Request) {
 	gallery, err := gc.galleryByID(w, req)
 	if err != nil {
 		return
@@ -106,7 +106,7 @@ func (gc *GalleryController) Edit(w http.ResponseWriter, req *http.Request) {
 }
 
 // POST /galleries/{id}/update
-func (gc *GalleryController) Update(w http.ResponseWriter, req *http.Request) {
+func (gc *GalleriesController) Update(w http.ResponseWriter, req *http.Request) {
 	gallery, err := gc.galleryByID(w, req)
 	if err != nil {
 		return
@@ -118,8 +118,8 @@ func (gc *GalleryController) Update(w http.ResponseWriter, req *http.Request) {
 	}
 
 	data := views.Data{Content: gallery}
-	var form GalleryForm
-	if err := forms.ParseForm(req, &form); err != nil {
+	var form forms2.GalleryForm
+	if err := forms2.ParseForm(req, &form); err != nil {
 		log.Println(err)
 		data.SetAlert(err)
 		gc.EditView.Render(w, req, data)
@@ -137,7 +137,7 @@ func (gc *GalleryController) Update(w http.ResponseWriter, req *http.Request) {
 }
 
 // POST /galleries/{id}/delete
-func (gc *GalleryController) Delete(w http.ResponseWriter, req *http.Request) {
+func (gc *GalleriesController) Delete(w http.ResponseWriter, req *http.Request) {
 	gallery, err := gc.galleryByID(w, req)
 	if err != nil {
 		return
@@ -158,7 +158,7 @@ func (gc *GalleryController) Delete(w http.ResponseWriter, req *http.Request) {
 	http.Redirect(w, req, "/galleries", http.StatusSeeOther)
 }
 
-func (gc *GalleryController) galleryByID(w http.ResponseWriter, req *http.Request) (*Gallery, error) {
+func (gc *GalleriesController) galleryByID(w http.ResponseWriter, req *http.Request) (*models2.Gallery, error) {
 	params := mux.Vars(req)
 	id, err := strconv.Atoi(params["id"])
 	if err != nil {
@@ -169,7 +169,7 @@ func (gc *GalleryController) galleryByID(w http.ResponseWriter, req *http.Reques
 	gallery, err := gc.gs.ByID(uint(id))
 	if err != nil {
 		switch err {
-		case models.ErrNotFound:
+		case models2.ErrNotFound:
 			http.Error(w, "Gallery Not Found", http.StatusNotFound)
 		default:
 			http.Error(w, "Server Error", http.StatusInternalServerError)

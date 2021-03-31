@@ -1,13 +1,13 @@
 package middlewares
 
 import (
-	"gallerio/accounts"
+	"gallerio/models"
 	"gallerio/utils/context"
 	"net/http"
 )
 
 type LoginRequired struct {
-	accounts.UserService
+	models.UserService
 }
 
 func (mw *LoginRequired) Apply(next http.Handler) http.HandlerFunc {

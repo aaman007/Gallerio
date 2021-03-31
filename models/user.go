@@ -1,8 +1,7 @@
-package accounts
+package models
 
 import (
 	"gallerio/utils/hash"
-	"gallerio/utils/models"
 	"gallerio/utils/rand"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
@@ -73,7 +72,7 @@ func (us *userService) Authenticate(email, password string) (*User, error) {
 	if err != nil {
 		switch err {
 		case bcrypt.ErrMismatchedHashAndPassword:
-			return nil, models.ErrPasswordIncorrect
+			return nil, ErrPasswordIncorrect
 		default:
 			return nil, err
 		}
@@ -95,8 +94,8 @@ func runUserValFuncs(user *User, fns ...userValFunc) error {
 
 func newUserValidator(udb UserDB, hmac hash.HMAC) *userValidator {
 	return &userValidator{
-		UserDB: udb,
-		hmac: hmac,
+		UserDB:     udb,
+		hmac:       hmac,
 		emailRegex: EmailRegex,
 	}
 }
@@ -217,7 +216,7 @@ func (uv *userValidator) defaultRememberToken(user *User) error {
 func (uv *userValidator) idGreaterThan(n uint) userValFunc {
 	return func(user *User) error {
 		if user.ID <= n {
-			return models.ErrIDInvalid
+			return ErrIDInvalid
 		}
 		return nil
 	}
@@ -231,42 +230,42 @@ func (uv *userValidator) emailNormalize(user *User) error {
 
 func (uv *userValidator) emailRequired(user *User) error {
 	if user.Email == "" {
-		return models.ErrEmailRequired
+		return ErrEmailRequired
 	}
 	return nil
 }
 
 func (uv *userValidator) emailFormat(user *User) error {
 	if !uv.emailRegex.MatchString(user.Email) {
-		return models.ErrEmailInvalid
+		return ErrEmailInvalid
 	}
 	return nil
 }
 
 func (uv *userValidator) emailAvailable(user *User) error {
 	existing, err := uv.ByEmail(user.Email)
-	if err == models.ErrNotFound {
+	if err == ErrNotFound {
 		return nil
 	}
 	if err != nil {
 		return err
 	}
 	if existing.ID != user.ID {
-		return models.ErrEmailTaken
+		return ErrEmailTaken
 	}
 	return nil
 }
 
 func (uv *userValidator) passwordRequired(user *User) error {
 	if user.Password == "" {
-		return models.ErrPasswordRequired
+		return ErrPasswordRequired
 	}
 	return nil
 }
 
 func (uv *userValidator) passwordHashRequired(user *User) error {
 	if user.PasswordHash == "" {
-		return models.ErrPasswordRequired
+		return ErrPasswordRequired
 	}
 	return nil
 }
@@ -276,7 +275,7 @@ func (uv *userValidator) passwordMinLength(user *User) error {
 		return nil
 	}
 	if len(user.Password) < 8 {
-		return models.ErrPasswordTooShort
+		return ErrPasswordTooShort
 	}
 	return nil
 }
@@ -290,14 +289,14 @@ func (uv *userValidator) rememberTokenMinBytes(user *User) error {
 		return err
 	}
 	if b < 32 {
-		return models.ErrRememberTokenTooShort
+		return ErrRememberTokenTooShort
 	}
 	return nil
 }
 
 func (uv *userValidator) rememberTokenHashRequired(user *User) error {
 	if user.RememberTokenHash == "" {
-		return models.ErrRememberTokenRequired
+		return ErrRememberTokenRequired
 	}
 	return nil
 }
@@ -309,20 +308,20 @@ type userGorm struct {
 func (ug *userGorm) ByID(id uint) (*User, error) {
 	var user User
 	db := ug.db.Where("id = ?", id)
-	err := models.First(db, &user)
+	err := First(db, &user)
 	return &user, err
 }
 
 func (ug *userGorm) ByEmail(email string) (*User, error) {
 	var user User
 	db := ug.db.Where("email = ?", email)
-	err := models.First(db, &user)
+	err := First(db, &user)
 	return &user, err
 }
 
 func (ug *userGorm) ByRememberToken(hashedToken string) (*User, error) {
 	var user User
-	err := models.First(ug.db.Where("remember_token_hash = ?", hashedToken), &user)
+	err := First(ug.db.Where("remember_token_hash = ?", hashedToken), &user)
 	if err != nil {
 		return nil, err
 	}
