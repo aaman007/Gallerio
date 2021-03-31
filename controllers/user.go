@@ -51,7 +51,7 @@ func (uc *UsersController) SignUp(w http.ResponseWriter, req *http.Request) {
 		http.Redirect(w, req, "/signin", http.StatusSeeOther)
 		return
 	}
-	http.Redirect(w, req, "/", http.StatusSeeOther)
+	http.Redirect(w, req, "/galleries", http.StatusSeeOther)
 }
 
 // POST /signin
@@ -83,7 +83,7 @@ func (uc *UsersController) SignIn(w http.ResponseWriter, req *http.Request) {
 		uc.SignInView.Render(w, req, data)
 		return
 	}
-	http.Redirect(w, req, "/", http.StatusSeeOther)
+	http.Redirect(w, req, "/galleries", http.StatusSeeOther)
 }
 
 func (uc *UsersController) signInUser(w http.ResponseWriter, user *models2.User) error {

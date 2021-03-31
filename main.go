@@ -33,6 +33,9 @@ func main() {
 	galleriesController := controllers.NewGalleriesController(services.Gallery, router)
 	coreController := controllers.NewStaticController()
 
+	assignUserMw := middlewares.AssignUser{
+		UserService: services.User,
+	}
 	loginRequiredMw := middlewares.LoginRequired{
 		UserService: services.User,
 	}
@@ -64,5 +67,5 @@ func main() {
 	router.HandleFunc("/galleries/{id:[0-9]+}/delete",
 		loginRequiredMw.ApplyFunc(galleriesController.Delete)).Methods("POST")
 
-	log.Fatal(http.ListenAndServe(":8002", router))
+	log.Fatal(http.ListenAndServe(":8003", assignUserMw.Apply(router)))
 }
