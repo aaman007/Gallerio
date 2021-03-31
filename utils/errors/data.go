@@ -3,16 +3,19 @@ package errors
 import "strings"
 
 const (
-	ErrNotFound modelError = "accounts: resource not found"
-	ErrIDInvalid modelError = "accounts: ID provided was invalid"
-	ErrPasswordIncorrect modelError = "accounts: incorrect password provided"
-	ErrPasswordRequired modelError = "accounts: password is required"
-	ErrPasswordTooShort modelError = "accounts: password must be at least 8 characters"
-	ErrEmailRequired modelError = "accounts: email address is required"
-	ErrEmailInvalid modelError = "accounts: email address is invalid"
-	ErrEmailTaken modelError = "accounts: email address is taken"
-	ErrRememberTokenTooShort modelError = "accounts: remember token must be at least 32 bytes"
-	ErrRememberTokenRequired modelError = "accounts: remember token is required"
+	ErrNotFound modelError = "models: resource not found"
+	ErrPasswordIncorrect modelError = "models: incorrect password provided"
+	ErrPasswordRequired modelError = "models: password is required"
+	ErrPasswordTooShort modelError = "models: password must be at least 8 characters"
+	ErrEmailRequired modelError = "models: email address is required"
+	ErrEmailInvalid modelError = "models: email address is invalid"
+	ErrEmailTaken modelError = "models: email address is taken"
+	ErrTitleRequired modelError = "models: title is required"
+
+	ErrIDInvalid privateError = "models: ID provided was invalid"
+	ErrRememberTokenTooShort privateError = "models: remember token must be at least 32 bytes"
+	ErrRememberTokenRequired privateError = "models: remember token is required"
+	ErrUserIDRequired privateError = "models: user ID was not provided"
 )
 
 type modelError string
@@ -22,8 +25,14 @@ func (err modelError) Error() string {
 }
 
 func (err modelError) Public() string {
-	s := strings.Replace(err.Error(), "accounts: ", "", 1)
+	s := strings.Replace(err.Error(), "models: ", "", 1)
 	splits := strings.Split(s, " ")
 	splits[0] = strings.Title(splits[0])
 	return strings.Join(splits, " ")
+}
+
+type privateError string
+
+func (err privateError) Error() string {
+	return string(err)
 }

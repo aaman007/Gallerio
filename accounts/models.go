@@ -147,7 +147,7 @@ func (uv *userValidator) Create(user *User) error {
 	if err != nil {
 		return err
 	}
-	return uv.UserDB.Update(user)
+	return uv.UserDB.Create(user)
 }
 
 func (uv *userValidator) Update(user *User) error {
