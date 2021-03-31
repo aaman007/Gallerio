@@ -1,7 +1,7 @@
 package views
 
 import (
-	error2 "go-web-dev-2/utils/error"
+	"go-web-dev-2/utils/errors"
 	"html/template"
 	"net/http"
 	"path/filepath"
@@ -34,10 +34,18 @@ type View struct {
 }
 
 func (v *View) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	error2.Must(v.Render(w, nil))
+	errors.Must(v.Render(w, nil))
 }
 
 func (v *View) Render(w http.ResponseWriter, data interface{}) error {
+	switch data.(type) {
+	case Data:
+		// pass
+	default:
+		data = Data{
+			Content: data,
+		}
+	}
 	return v.Template.ExecuteTemplate(w, v.Layout, data)
 }
 

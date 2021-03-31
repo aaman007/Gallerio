@@ -1,9 +1,9 @@
 package accounts
 
 import (
-	"errors"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
+	"go-web-dev-2/utils/errors"
 	"go-web-dev-2/utils/hash"
 	"go-web-dev-2/utils/rand"
 	"golang.org/x/crypto/bcrypt"
@@ -12,17 +12,6 @@ import (
 )
 
 var (
-	ErrNotFound = errors.New("accounts: resource not found")
-	ErrIDInvalid = errors.New("accounts: ID provided was invalid")
-	ErrPasswordIncorrect = errors.New("accounts: incorrect password provided")
-	ErrPasswordRequired = errors.New("accounts: password is required")
-	ErrPasswordTooShort = errors.New("accounts: password must be at least 8 characters")
-	ErrEmailRequired = errors.New("accounts: email address is required")
-	ErrEmailInvalid = errors.New("accounts: email address is invalid")
-	ErrEmailTaken = errors.New("accounts: email address is taken")
-	ErrRememberTokenTooShort = errors.New("accounts: remember token must be at least 32 bytes")
-	ErrRememberTokenRequired = errors.New("accounts: remember token is required")
-
 	EmailRegex = regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,16}$`)
 )
 
@@ -95,7 +84,7 @@ func (us *userService) Authenticate(email, password string) (*User, error) {
 	if err != nil {
 		switch err {
 		case bcrypt.ErrMismatchedHashAndPassword:
-			return nil, ErrPasswordIncorrect
+			return nil, errors.ErrPasswordIncorrect
 		default:
 			return nil, err
 		}
@@ -238,7 +227,7 @@ func (uv *userValidator) defaultRememberToken(user *User) error {
 func (uv *userValidator) idGreaterThan(n uint) userValFunc {
 	return func(user *User) error {
 		if user.ID <= n {
-			return ErrIDInvalid
+			return errors.ErrIDInvalid
 		}
 		return nil
 	}
@@ -252,42 +241,42 @@ func (uv *userValidator) emailNormalize(user *User) error {
 
 func (uv *userValidator) emailRequired(user *User) error {
 	if user.Email == "" {
-		return ErrEmailRequired
+		return errors.ErrEmailRequired
 	}
 	return nil
 }
 
 func (uv *userValidator) emailFormat(user *User) error {
 	if !uv.emailRegex.MatchString(user.Email) {
-		return ErrEmailInvalid
+		return errors.ErrEmailInvalid
 	}
 	return nil
 }
 
 func (uv *userValidator) emailAvailable(user *User) error {
 	existing, err := uv.ByEmail(user.Email)
-	if err == ErrNotFound {
+	if err == errors.ErrNotFound {
 		return nil
 	}
 	if err != nil {
 		return err
 	}
 	if existing.ID != user.ID {
-		return ErrEmailTaken
+		return errors.ErrEmailTaken
 	}
 	return nil
 }
 
 func (uv *userValidator) passwordRequired(user *User) error {
 	if user.Password == "" {
-		return ErrPasswordRequired
+		return errors.ErrPasswordRequired
 	}
 	return nil
 }
 
 func (uv *userValidator) passwordHashRequired(user *User) error {
 	if user.PasswordHash == "" {
-		return ErrPasswordRequired
+		return errors.ErrPasswordRequired
 	}
 	return nil
 }
@@ -297,7 +286,7 @@ func (uv *userValidator) passwordMinLength(user *User) error {
 		return nil
 	}
 	if len(user.Password) < 8 {
-		return ErrPasswordTooShort
+		return errors.ErrPasswordTooShort
 	}
 	return nil
 }
@@ -311,14 +300,14 @@ func (uv *userValidator) rememberTokenMinBytes(user *User) error {
 		return err
 	}
 	if b < 32 {
-		return ErrRememberTokenTooShort
+		return errors.ErrRememberTokenTooShort
 	}
 	return nil
 }
 
 func (uv *userValidator) rememberTokenHashRequired(user *User) error {
 	if user.RememberTokenHash == "" {
-		return ErrRememberTokenRequired
+		return errors.ErrRememberTokenRequired
 	}
 	return nil
 }
@@ -396,7 +385,7 @@ func (ug *userGorm) AutoMigrate() error {
 func first(db *gorm.DB, dst interface{}) error {
 	err := db.First(dst).Error
 	if err == gorm.ErrRecordNotFound {
-		return ErrNotFound
+		return errors.ErrNotFound
 	}
 	return err
 }

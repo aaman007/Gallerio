@@ -13,8 +13,11 @@
 
     {{ template "navbar" }}
 
-    <div class="container">
-        {{ template "content" . }}
+    <div class="container my-4">
+        {{ if .Alert }}
+            {{ template "alerts" .Alert }}
+        {{ end }}
+        {{ template "content" .Content }}
     </div>
 
     {{ template "footer" }}

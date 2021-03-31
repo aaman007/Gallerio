@@ -1,4 +1,4 @@
-package form
+package forms
 
 import (
 	"github.com/gorilla/schema"

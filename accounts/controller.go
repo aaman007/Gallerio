@@ -1,10 +1,11 @@
 package accounts
 
 import (
-	errorUtil "go-web-dev-2/utils/error"
-	formUtil "go-web-dev-2/utils/form"
+	"go-web-dev-2/utils/errors"
+	"go-web-dev-2/utils/forms"
 	"go-web-dev-2/utils/rand"
 	"go-web-dev-2/views"
+	"log"
 	"net/http"
 )
 
@@ -24,8 +25,14 @@ type UserController struct {
 }
 
 func (uc *UserController) SignUp(w http.ResponseWriter, req *http.Request) {
+	var data views.Data
 	var form SignUpForm
-	errorUtil.Must(formUtil.ParseForm(req, &form))
+	if err := forms.ParseForm(req, &form); err != nil {
+		log.Println(err)
+		data.SetAlert(err)
+		uc.SignUpView.Render(w, data)
+		return
+	}
 
 	user := User{
 		Name: form.Name,
@@ -34,35 +41,44 @@ func (uc *UserController) SignUp(w http.ResponseWriter, req *http.Request) {
 		Password: form.Password,
 	}
 	if err := uc.us.Create(&user); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Println(err)
+		data.SetAlert(err)
+		uc.SignUpView.Render(w, data)
 		return
 	}
 	if err := uc.signInUser(w, &user); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Redirect(w, req, "/signin", http.StatusSeeOther)
 		return
 	}
 	http.Redirect(w, req, "/", http.StatusSeeOther)
 }
 
 func (uc *UserController) SignIn(w http.ResponseWriter, req *http.Request) {
+	var data views.Data
 	var form SignInForm
-	errorUtil.Must(formUtil.ParseForm(req, &form))
+	if err := forms.ParseForm(req, &form); err != nil {
+		log.Println(err)
+		data.SetAlert(err)
+		uc.SignInView.Render(w, data)
+		return
+	}
 
 	user, err := uc.us.Authenticate(form.Email, form.Password)
 	if err != nil {
+		log.Println(err)
 		switch err {
-		case ErrNotFound:
-			http.Error(w, "Email Address is incorrect", http.StatusBadRequest)
-		case ErrPasswordIncorrect:
-			http.Error(w, "Password is incorrect", http.StatusBadRequest)
+		case errors.ErrNotFound:
+			data.AlertError("Email Address is incorrect")
 		default:
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			data.SetAlert(err)
 		}
+		uc.SignInView.Render(w, data)
 		return
 	}
 
 	if err := uc.signInUser(w, user); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Println(err)
+		uc.SignInView.Render(w, data)
 		return
 	}
 	http.Redirect(w, req, "/", http.StatusSeeOther)
