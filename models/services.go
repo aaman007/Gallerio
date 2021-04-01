@@ -2,36 +2,73 @@ package models
 
 import (
 	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
-func NewServices(connectionInfo string) (*Services, error) {
-	db, err := gorm.Open("postgres", connectionInfo)
-	if err != nil {
-		return nil, err
+type ServicesConfig func(*Services) error
+
+func WithGorm(dialect, connectionInfo string) ServicesConfig {
+	return func(services *Services) error {
+		db, err := gorm.Open(dialect, connectionInfo)
+		if err != nil {
+			return err
+		}
+		services.db = db
+		return nil
 	}
-	db.LogMode(true)
-	
-	return &Services{
-		User:    NewUserService(db),
-		Gallery: NewGalleryService(db),
-		Image:   NewImageService(),
-		DB:      db,
-	}, nil
+}
+
+func WithLogMode(logMode bool) ServicesConfig {
+	return func(services *Services) error {
+		services.db.LogMode(logMode)
+		return nil
+	}
+}
+
+func WithUser(pepper, hmacKey string) ServicesConfig {
+	return func(services *Services) error {
+		services.User = NewUserService(services.db, pepper, hmacKey)
+		return nil
+	}
+}
+
+func WithGallery() ServicesConfig {
+	return func(services *Services) error {
+		services.Gallery = NewGalleryService(services.db)
+		return nil
+	}
+}
+
+func WithImage() ServicesConfig {
+	return func(services *Services) error {
+		services.Image = NewImageService()
+		return nil
+	}
+}
+
+func NewServices(cfgs ...ServicesConfig) (*Services, error) {
+	var services Services
+	for _, cfg := range cfgs {
+		if err := cfg(&services); err != nil {
+			return nil, err
+		}
+	}
+	return &services, nil
 }
 
 type Services struct {
 	User    UserService
 	Gallery GalleryService
 	Image   ImageService
-	DB      *gorm.DB
+	db      *gorm.DB
 }
 
 func (s *Services) Close() error {
-	return s.DB.Close()
+	return s.db.Close()
 }
 
 func (s *Services) DestructiveReset() error {
-	err := s.DB.DropTableIfExists(&User{}, &Gallery{}).Error
+	err := s.db.DropTableIfExists(&User{}, &Gallery{}).Error
 	if err != nil {
 		return err
 	}
@@ -39,5 +76,5 @@ func (s *Services) DestructiveReset() error {
 }
 
 func (s *Services) AutoMigrate() error {
-	return s.DB.AutoMigrate(&User{}, &Gallery{}).Error
+	return s.db.AutoMigrate(&User{}, &Gallery{}).Error
 }

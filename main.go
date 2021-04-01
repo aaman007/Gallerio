@@ -15,19 +15,17 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const (
-	dbHost = "localhost"
-	dbPort = 5432
-	dbUser = "robert"
-	dbPassword = "password"
-	dbName = "gallerio"
-)
 
 func main() {
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
-		dbHost, dbPort, dbUser, dbPassword, dbName,
+	cfg := DefaultConfig()
+	dbCfg := DefaultPostgresConfig()
+	services, err := models.NewServices(
+		models.WithGorm(dbCfg.Dialect(), dbCfg.ConnectionInfo()),
+		models.WithLogMode(cfg.IsDevelopment()),
+		models.WithUser(cfg.Pepper, cfg.HMACKey),
+		models.WithGallery(),
+		models.WithImage(),
 	)
-	services, err := models.NewServices(psqlInfo)
 	if err != nil {
 		panic(err)
 	}
@@ -39,10 +37,9 @@ func main() {
 	galleriesController := controllers.NewGalleriesController(services.Gallery, services.Image, router)
 	coreController := controllers.NewStaticController()
 	
-	isProd := false
 	b, err := rand.Bytes(32)
 	errors.Must(err)
-	csrfMw := csrf.Protect(b, csrf.Secure(isProd))
+	csrfMw := csrf.Protect(b, csrf.Secure(cfg.IsProduction()))
 	assignUserMw := middlewares.AssignUser{
 		UserService: services.User,
 	}
@@ -89,5 +86,5 @@ func main() {
 	staticHandler := http.FileServer(http.Dir("./static/"))
 	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", staticHandler))
 
-	log.Fatal(http.ListenAndServe(":8005", csrfMw(assignUserMw.Apply(router))))
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", cfg.Port), csrfMw(assignUserMw.Apply(router))))
 }
