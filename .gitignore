@@ -184,3 +184,4 @@ fabric.properties
 tmp
 media
 static
+static_local
