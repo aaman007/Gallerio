@@ -3,10 +3,12 @@ package controllers
 import (
 	"gallerio/forms"
 	"gallerio/models"
+	"gallerio/utils/context"
 	"gallerio/utils/rand"
 	"gallerio/views"
 	"log"
 	"net/http"
+	"time"
 )
 
 func NewUsersController(us models.UserService) *UsersController {
@@ -50,7 +52,11 @@ func (uc *UsersController) SignUp(w http.ResponseWriter, req *http.Request) {
 		http.Redirect(w, req, "/signin", http.StatusSeeOther)
 		return
 	}
-	http.Redirect(w, req, "/galleries", http.StatusSeeOther)
+	alert := views.Alert{
+		Level: views.AlertLevelSuccess,
+		Message: "Welcome to Gallerio",
+	}
+	views.RedirectAlert(w, req, "/galleries", http.StatusSeeOther, alert)
 }
 
 // POST /signin
@@ -83,6 +89,24 @@ func (uc *UsersController) SignIn(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	http.Redirect(w, req, "/galleries", http.StatusSeeOther)
+}
+
+// POST /signout
+func (uc *UsersController) SignOut(w http.ResponseWriter, req *http.Request) {
+	cookie := &http.Cookie{
+		Name:     "remember_token",
+		Value:    "",
+		Expires: time.Now(),
+		HttpOnly: true,
+	}
+	http.SetCookie(w, cookie)
+	
+	user := context.User(req.Context())
+	token, _ := rand.RememberToken()
+	user.RememberToken = token
+	_ = uc.us.Update(user)
+	
+	http.Redirect(w, req, "/", http.StatusSeeOther)
 }
 
 func (uc *UsersController) signInUser(w http.ResponseWriter, user *models.User) error {

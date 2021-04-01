@@ -60,7 +60,7 @@ func (c Config) IsDevelopment() bool {
 
 func DefaultConfig() Config {
 	return Config{
-		Port:     8005,
+		Port:     8000,
 		Env:      "DEVELOPMENT",
 		Pepper:   "secret-random-string",
 		HMACKey:  "secret-hmac-key",

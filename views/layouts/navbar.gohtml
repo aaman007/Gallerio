@@ -21,7 +21,8 @@
                 </ul>
                 <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
                     {{ if .User }}
-                        <strong class="text-white"> Welcome, {{.User.Name}} </strong>
+                        <strong class="text-white me-2"> Welcome, {{.User.Name}} </strong>
+                        {{ template "signoutForm" }}
                     {{ else }}
                         <li class="nav-item">
                             <a class="nav-link" href="/signin">Sign In</a>
@@ -34,4 +35,11 @@
             </div>
         </div>
     </nav>
+{{ end }}
+
+{{ define "signoutForm" }}
+    <form action="/signout" method="POST">
+        {{csrfField}}
+        <button class="btn-w-style text-white" type="submit"> Sign Out </button>
+    </form>
 {{ end }}

@@ -1,6 +1,10 @@
 package views
 
-import "log"
+import (
+	"log"
+	"net/http"
+	"time"
+)
 
 var (
 	AlertLevelError   = "danger"
@@ -47,4 +51,58 @@ func (d *Data) AlertError(message string) {
 type PublicError interface {
 	error
 	Public() string
+}
+
+func persistAlert(w http.ResponseWriter, alert Alert) {
+	lvl, msg := getCookiesForAlert(alert, time.Now().Add(5 * time.Minute))
+	http.SetCookie(w, lvl)
+	http.SetCookie(w, msg)
+}
+
+func clearAlert(w http.ResponseWriter) {
+	alert := Alert{
+		Level: "",
+		Message: "",
+	}
+	lvl, msg := getCookiesForAlert(alert, time.Now())
+	http.SetCookie(w, lvl)
+	http.SetCookie(w, msg)
+}
+
+func getAlert(req *http.Request) *Alert {
+	lvl, err := req.Cookie("alert_level")
+	if err != nil {
+		return nil
+	}
+	msg, err := req.Cookie("alert_message")
+	if err != nil {
+		return nil
+	}
+
+	alert := &Alert{
+		Level: lvl.Value,
+		Message: msg.Value,
+	}
+	return alert
+}
+
+func RedirectAlert(w http.ResponseWriter, req *http.Request, urlStr string, code int, alert Alert) {
+	persistAlert(w, alert)
+	http.Redirect(w, req, urlStr, code)
+}
+
+func getCookiesForAlert(alert Alert, expires time.Time) (*http.Cookie, *http.Cookie) {
+	lvl := &http.Cookie{
+		Name: "alert_level",
+		Value: alert.Level,
+		Expires: expires,
+		HttpOnly: true,
+	}
+	msg := &http.Cookie{
+		Name: "alert_message",
+		Value: alert.Message,
+		Expires: expires,
+		HttpOnly: true,
+	}
+	return lvl, msg
 }

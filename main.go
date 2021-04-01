@@ -67,6 +67,8 @@ func main() {
 	router.HandleFunc("/signin", usersController.SignIn).Methods("POST")
 	router.Handle("/signup", usersController.SignUpView).Methods("GET")
 	router.HandleFunc("/signup", usersController.SignUp).Methods("POST")
+	router.HandleFunc("/signout",
+		loginRequiredMw.ApplyFunc(usersController.SignOut)).Methods("POST")
 
 	// Galleries Routes
 	router.Handle("/galleries/new",

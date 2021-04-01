@@ -22,7 +22,6 @@ func NewView(layout string, files ...string) *View {
 	addTemplatePath(files)
 	addTemplateExt(files)
 	files = append(files, layoutFiles()...)
-	
 	t, err := template.New("").Funcs(template.FuncMap{
 		"csrfField": func() (template.HTML, error) {
 			return "", errors.New("csrfField is not implemented properly")
@@ -56,7 +55,11 @@ func (v *View) Render(w http.ResponseWriter, req *http.Request, data interface{}
 			Content: data,
 		}
 	}
-	
+
+	if alert := getAlert(req); alert != nil {
+		_data.Alert = alert
+		clearAlert(w)
+	}
 	_data.User = context.User(req.Context())
 	csrfField := csrf.TemplateField(req)
 	tpl := v.Template.Funcs(template.FuncMap{

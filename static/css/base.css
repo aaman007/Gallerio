@@ -1,3 +1,9 @@
 .gallerio-style {
     font-size: 22px;
 }
+
+.btn-w-style {
+    border: none;
+    color: inherit;
+    background: inherit;
+}

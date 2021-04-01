@@ -3,8 +3,8 @@
         <div class="col-md-12">
             <h2 class="text-center"> {{.Title}} </h2> <hr />
             <div class="row">
-                {{ range .ImageSplitN 3 }}
-                    <div class="col-md-4">
+                {{ range .ImageSplitN 4 }}
+                    <div class="col-md-3">
                         {{ range . }}
                             <a href="{{.Path}}">
                                 <img class="img-thumbnail m-2" src="{{.Path}}"/>
