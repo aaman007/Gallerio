@@ -180,8 +180,9 @@ fabric.properties
 
 # End of https://www.toptal.com/developers/gitignore/api/emacs,go,jetbrains
 
-# Ignore tmp file
+# Ignore files/folders
 tmp
 media
 static_local
 .idea
+configs/.config.json

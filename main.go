@@ -1,7 +1,9 @@
 package main
 
 import (
+	"flag"
 	"fmt"
+	"gallerio/configs"
 	"gallerio/utils/errors"
 	"gallerio/utils/rand"
 	"github.com/gorilla/csrf"
@@ -17,8 +19,17 @@ import (
 
 
 func main() {
-	cfg := DefaultConfig()
-	dbCfg := DefaultPostgresConfig()
+	// To View list of flags
+	// run: go build . && ./gallerio --help
+	//
+	// To run with prod flag
+	// run: go build . && ./gallerio --prod
+	boolPtr := flag.Bool("prod", false, "Provide this flag in production." +
+		"This flag will ensure that a .config file is setup properly.")
+	flag.Parse()
+	
+	cfg := configs.LoadConfig(*boolPtr)
+	dbCfg := cfg.Database
 	services, err := models.NewServices(
 		models.WithGorm(dbCfg.Dialect(), dbCfg.ConnectionInfo()),
 		models.WithLogMode(cfg.IsDevelopment()),
@@ -85,6 +96,7 @@ func main() {
 	// Static Routes
 	staticHandler := http.FileServer(http.Dir("./static/"))
 	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", staticHandler))
-
+	
+	fmt.Printf("Starting server on Port : %v\n", cfg.Port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", cfg.Port), csrfMw(assignUserMw.Apply(router))))
 }
