@@ -86,6 +86,11 @@
     </form>
 {{ end }}
 
+<!--
+    To build the delete action url in template we need to filter with urlquery
+    as filenames can contain ?& and other characters which causes issues
+    action="/galleries/{{.GalleyID}}/images/{{.Filename | urlquery}}/delete"
+-->
 {{ define "deleteImageForm" }}
     <form class="mt-2" method="POST" action="{{.DeletePath}}">
         {{csrfField}}
