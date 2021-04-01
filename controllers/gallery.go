@@ -17,7 +17,6 @@ var (
 	EditGalleryName = "show_gallery"
 	
 	maxMemoryLimit int64 = 1 << 20 // 1MB
-	galleryPath          = "media/galleries/"
 )
 
 func NewGalleriesController(gs models.GalleryService, is models.ImageService, router *mux.Router) *GalleriesController {
@@ -91,6 +90,7 @@ func (gc *GalleriesController) Show(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		return
 	}
+	gallery.Images, _ = gc.is.ByGalleryID(gallery.ID)
 	data := views.Data{Content: gallery}
 	gc.ShowView.Render(w, req, data)
 }
@@ -106,6 +106,7 @@ func (gc *GalleriesController) Edit(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, "Gallery Not Found", http.StatusNotFound)
 		return
 	}
+	gallery.Images, _ = gc.is.ByGalleryID(gallery.ID)
 	data := views.Data{Content: gallery}
 	gc.EditView.Render(w, req, data)
 }
@@ -138,11 +139,12 @@ func (gc *GalleriesController) Update(w http.ResponseWriter, req *http.Request) 
 		gc.EditView.Render(w, req, data)
 		return
 	}
-	http.Redirect(w, req, "/gallery", http.StatusSeeOther)
+	
+	http.Redirect(w, req, "/galleries", http.StatusSeeOther)
 }
 
 // POST /galleries/{id}/images
-func (gc *GalleriesController) UploadImages(w http.ResponseWriter, req *http.Request) {
+func (gc *GalleriesController) UploadImage(w http.ResponseWriter, req *http.Request) {
 	gallery, err := gc.galleryByID(w, req)
 	if err != nil {
 		return
@@ -162,7 +164,6 @@ func (gc *GalleriesController) UploadImages(w http.ResponseWriter, req *http.Req
 	}
 	
 	files := req.MultipartForm.File["images"]
-	galleryImagesPath := fmt.Sprintf("%v%v/", galleryPath, gallery.ID)
 	for _, f := range files {
 		file, err := f.Open()
 		if err != nil {
@@ -172,14 +173,52 @@ func (gc *GalleriesController) UploadImages(w http.ResponseWriter, req *http.Req
 		}
 		defer file.Close()
 		
-		err = gc.is.Create(galleryImagesPath, f.Filename, file)
+		err = gc.is.Create(gallery.ID, f.Filename, file)
 		if err != nil {
 			data.SetAlert(err)
 			gc.EditView.Render(w, req, data)
 			return
 		}
 	}
-	fmt.Fprintln(w, "Uploaded Images on "+galleryImagesPath)
+	
+	url, err := gc.router.Get(EditGalleryName).URL("id", fmt.Sprintf("%v", gallery.ID))
+	if err != nil {
+		http.Redirect(w, req, "/galleries", http.StatusSeeOther)
+		return
+	}
+	http.Redirect(w, req, url.Path, http.StatusSeeOther)
+}
+
+// POST /galleries/{id}/images/{filename}/delete
+func (gc *GalleriesController) DeleteImage(w http.ResponseWriter, req *http.Request) {
+	gallery, err := gc.galleryByID(w, req)
+	if err != nil {
+		return
+	}
+	user := context.User(req.Context())
+	if user.ID != gallery.UserID {
+		http.Error(w, "Gallery Not Found", http.StatusNotFound)
+		return
+	}
+	
+	image := &models.Image{
+		Filename: mux.Vars(req)["filename"],
+		GalleryID: gallery.ID,
+	}
+	err = gc.is.Delete(image)
+	if err != nil {
+		gallery.Images, _ = gc.is.ByGalleryID(gallery.ID)
+		data := views.Data{Content: gallery}
+		data.SetAlert(err)
+		gc.EditView.Render(w, req, data)
+		return
+	}
+	url, err := gc.router.Get(EditGalleryName).URL("id", fmt.Sprintf("%v", gallery.ID))
+	if err != nil {
+		http.Redirect(w, req, "/galleries", http.StatusSeeOther)
+		return
+	}
+	http.Redirect(w, req, url.Path, http.StatusSeeOther)
 }
 
 // POST /galleries/{id}/delete

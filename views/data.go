@@ -1,5 +1,7 @@
 package views
 
+import "log"
+
 var (
 	AlertLevelError   = "danger"
 	AlertLevelWarning = "warning"
@@ -27,6 +29,7 @@ func (d *Data) SetAlert(err error) {
 			Message: pErr.Public(),
 		}
 	} else {
+		log.Println(err)
 		d.Alert = &Alert{
 			Level:   AlertLevelError,
 			Message: AlertMessageGeneric,
