@@ -9,7 +9,7 @@ func NewServices(connectionInfo string) (*Services, error) {
 	if err != nil {
 		return nil, err
 	}
-	// db.LogMode(true)
+	db.LogMode(true)
 	
 	return &Services{
 		User:    NewUserService(db),

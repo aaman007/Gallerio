@@ -4,6 +4,7 @@ import (
 	"gallerio/models"
 	"gallerio/utils/context"
 	"net/http"
+	"strings"
 )
 
 type AssignUser struct {
@@ -16,6 +17,12 @@ func (mw *AssignUser) Apply(next http.Handler) http.HandlerFunc {
 
 func (mw *AssignUser) ApplyFunc(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
+		path := req.URL.Path
+		if strings.HasPrefix(path, "/media/") ||
+			strings.HasPrefix(path, "/static/") {
+			next(w, req)
+			return
+		}
 		cookie, err := req.Cookie("remember_token")
 		if err != nil {
 			next(w, req)
