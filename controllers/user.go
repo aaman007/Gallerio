@@ -28,10 +28,18 @@ type UsersController struct {
 	mg         email.Client
 }
 
+// GET /signup
+func (uc *UsersController) New(w http.ResponseWriter, req *http.Request) {
+	var form forms.SignUpForm
+	_ = forms.ParseURLParams(req, &form)
+	uc.SignUpView.Render(w, req, form)
+}
+
 // POST /signup
 func (uc *UsersController) SignUp(w http.ResponseWriter, req *http.Request) {
 	var data views.Data
 	var form forms.SignUpForm
+	data.Content = &form
 	if err := forms.ParseForm(req, &form); err != nil {
 		log.Println(err)
 		data.SetAlert(err)
@@ -55,7 +63,7 @@ func (uc *UsersController) SignUp(w http.ResponseWriter, req *http.Request) {
 		http.Redirect(w, req, "/signin", http.StatusSeeOther)
 		return
 	}
-	_ = uc.mg.Welcome(user.Name, user.Email)
+	go uc.mg.Welcome(user.Name, user.Email)
 	alert := views.Alert{
 		Level:   views.AlertLevelSuccess,
 		Message: "Welcome to Gallerio",
@@ -92,7 +100,6 @@ func (uc *UsersController) SignIn(w http.ResponseWriter, req *http.Request) {
 		uc.SignInView.Render(w, req, data)
 		return
 	}
-	_ = uc.mg.Welcome(user.Name, user.Email)
 	http.Redirect(w, req, "/galleries", http.StatusSeeOther)
 }
 

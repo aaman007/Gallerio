@@ -4,7 +4,7 @@
             <div class="card border-dark">
                 <div class="card-header bg-dark text-white text-center"><h5> Sign Up Now! </h5></div>
                 <div class="card-body">
-                    {{ template "signupForm" }}
+                    {{ template "signupForm" . }}
                 </div>
             </div>
         </div>
@@ -16,15 +16,15 @@
         {{csrfField}}
         <div class="mb-3">
             <label for="id_name" class="form-label">Name</label>
-            <input type="text" name="name" class="form-control" id="id_name" aria-describedby="nameHelp">
+            <input type="text" name="name" value="{{.Name}}" class="form-control" id="id_name" aria-describedby="nameHelp">
         </div>
         <div class="mb-3">
             <label for="id_username" class="form-label">Username</label>
-            <input type="text" name="username" class="form-control" id="id_username" aria-describedby="usernameHelp">
+            <input type="text" name="username" value="{{.Username}}" class="form-control" id="id_username" aria-describedby="usernameHelp">
         </div>
         <div class="mb-3">
             <label for="id_email" class="form-label">Email address</label>
-            <input type="email" name="email" class="form-control" id="id_email" aria-describedby="emailHelp">
+            <input type="email" name="email" value="{{.Email}}" class="form-control" id="id_email" aria-describedby="emailHelp">
         </div>
         <div class="mb-3">
             <label for="id_password" class="form-label">Password</label>
