@@ -1,34 +1,34 @@
 package views
 
 var (
-	AlertLevelError = "danger"
+	AlertLevelError   = "danger"
 	AlertLevelWarning = "warning"
-	AlertLevelInfo = "info"
+	AlertLevelInfo    = "info"
 	AlertLevelSuccess = "success"
-
+	
 	AlertMessageGeneric = "Something went wrong!"
 )
 
 type Alert struct {
-	Level string
+	Level   string
 	Message string
 }
 
 type Data struct {
-	Alert *Alert
-	User interface{}
+	Alert   *Alert
+	User    interface{}
 	Content interface{}
 }
 
 func (d *Data) SetAlert(err error) {
 	if pErr, ok := err.(PublicError); ok {
 		d.Alert = &Alert{
-			Level: AlertLevelError,
+			Level:   AlertLevelError,
 			Message: pErr.Public(),
 		}
 	} else {
 		d.Alert = &Alert{
-			Level: AlertLevelError,
+			Level:   AlertLevelError,
 			Message: AlertMessageGeneric,
 		}
 	}
@@ -36,7 +36,7 @@ func (d *Data) SetAlert(err error) {
 
 func (d *Data) AlertError(message string) {
 	d.Alert = &Alert{
-		Level: AlertLevelError,
+		Level:   AlertLevelError,
 		Message: message,
 	}
 }

@@ -6,8 +6,8 @@ import (
 
 type Gallery struct {
 	gorm.Model
-	UserID uint `gorm:"not_null;index"`
-	Title string `gorm:"not_null"`
+	UserID uint   `gorm:"not_null;index"`
+	Title  string `gorm:"not_null"`
 }
 
 type GalleryService interface {
@@ -17,10 +17,10 @@ type GalleryService interface {
 type GalleryDB interface {
 	// Methods for multiple gallery queries
 	ByUserID(id uint) ([]Gallery, error)
-
+	
 	// Methods for single gallery queries
 	ByID(id uint) (*Gallery, error)
-
+	
 	// Methods for modifying Gallery
 	Create(gallery *Gallery) error
 	Update(gallery *Gallery) error

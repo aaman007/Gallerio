@@ -11,7 +11,7 @@ const (
 	ErrEmailInvalid      modelError = "models: email address is invalid"
 	ErrEmailTaken        modelError = "models: email address is taken"
 	ErrTitleRequired     modelError = "models: title is required"
-
+	
 	ErrIDInvalid             privateError = "models: ID provided was invalid"
 	ErrRememberTokenTooShort privateError = "models: remember token must be at least 32 bytes"
 	ErrRememberTokenRequired privateError = "models: remember token is required"

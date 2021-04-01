@@ -1,44 +1,43 @@
 package controllers
 
 import (
-	forms2 "gallerio/forms"
-	models2 "gallerio/models"
+	"gallerio/forms"
+	"gallerio/models"
 	"gallerio/utils/rand"
 	"gallerio/views"
 	"log"
 	"net/http"
 )
 
-
-func NewUsersController(us models2.UserService) *UsersController {
+func NewUsersController(us models.UserService) *UsersController {
 	return &UsersController{
 		SignUpView: views.NewView("base", "user/signup"),
 		SignInView: views.NewView("base", "user/signin"),
-		us: us,
+		us:         us,
 	}
 }
 
 type UsersController struct {
 	SignUpView *views.View
 	SignInView *views.View
-	us         models2.UserService
+	us         models.UserService
 }
 
 // POST /signup
 func (uc *UsersController) SignUp(w http.ResponseWriter, req *http.Request) {
 	var data views.Data
-	var form forms2.SignUpForm
-	if err := forms2.ParseForm(req, &form); err != nil {
+	var form forms.SignUpForm
+	if err := forms.ParseForm(req, &form); err != nil {
 		log.Println(err)
 		data.SetAlert(err)
 		uc.SignUpView.Render(w, req, data)
 		return
 	}
-
-	user := models2.User{
-		Name: form.Name,
+	
+	user := models.User{
+		Name:     form.Name,
 		Username: form.Username,
-		Email: form.Email,
+		Email:    form.Email,
 		Password: form.Password,
 	}
 	if err := uc.us.Create(&user); err != nil {
@@ -57,19 +56,19 @@ func (uc *UsersController) SignUp(w http.ResponseWriter, req *http.Request) {
 // POST /signin
 func (uc *UsersController) SignIn(w http.ResponseWriter, req *http.Request) {
 	var data views.Data
-	var form forms2.SignInForm
-	if err := forms2.ParseForm(req, &form); err != nil {
+	var form forms.SignInForm
+	if err := forms.ParseForm(req, &form); err != nil {
 		log.Println(err)
 		data.SetAlert(err)
 		uc.SignInView.Render(w, req, data)
 		return
 	}
-
+	
 	user, err := uc.us.Authenticate(form.Email, form.Password)
 	if err != nil {
 		log.Println(err)
 		switch err {
-		case models2.ErrNotFound:
+		case models.ErrNotFound:
 			data.AlertError("Email Address is incorrect")
 		default:
 			data.SetAlert(err)
@@ -77,7 +76,7 @@ func (uc *UsersController) SignIn(w http.ResponseWriter, req *http.Request) {
 		uc.SignInView.Render(w, req, data)
 		return
 	}
-
+	
 	if err := uc.signInUser(w, user); err != nil {
 		log.Println(err)
 		uc.SignInView.Render(w, req, data)
@@ -86,7 +85,7 @@ func (uc *UsersController) SignIn(w http.ResponseWriter, req *http.Request) {
 	http.Redirect(w, req, "/galleries", http.StatusSeeOther)
 }
 
-func (uc *UsersController) signInUser(w http.ResponseWriter, user *models2.User) error {
+func (uc *UsersController) signInUser(w http.ResponseWriter, user *models.User) error {
 	if user.RememberToken == "" {
 		token, err := rand.RememberToken()
 		if err != nil {
@@ -98,8 +97,8 @@ func (uc *UsersController) signInUser(w http.ResponseWriter, user *models2.User)
 		}
 	}
 	cookie := &http.Cookie{
-		Name: "remember_token",
-		Value: user.RememberToken,
+		Name:     "remember_token",
+		Value:    user.RememberToken,
 		HttpOnly: true,
 	}
 	http.SetCookie(w, cookie)

@@ -182,3 +182,5 @@ fabric.properties
 
 # Ignore tmp file
 tmp
+media
+static

@@ -21,7 +21,7 @@ func (mw *AssignUser) ApplyFunc(next http.HandlerFunc) http.HandlerFunc {
 			next(w, req)
 			return
 		}
-
+		
 		user, err := mw.UserService.ByRememberToken(cookie.Value)
 		if err != nil {
 			next(w, req)
@@ -30,7 +30,7 @@ func (mw *AssignUser) ApplyFunc(next http.HandlerFunc) http.HandlerFunc {
 		ctx := req.Context()
 		ctx = context.WithUser(ctx, user)
 		req = req.WithContext(ctx)
-
+		
 		next(w, req)
 	}
 }

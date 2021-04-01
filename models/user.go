@@ -17,15 +17,14 @@ var (
 const applicationPasswordPepper = "asdhgs73ehgsahdahe36daghsdh3e"
 const hmacSecretKey = "dshjrewedshjf38274gewrh"
 
-
 type User struct {
 	gorm.Model
-	Name string
-	Username string `gorm:"not null;unique_index"`
-	Email string `gorm:"not null;unique_index"`
-	Password string `gorm:"-"`
-	PasswordHash string `gorm:"not null"`
-	RememberToken string `gorm:"-"`
+	Name              string
+	Username          string `gorm:"not null;unique_index"`
+	Email             string `gorm:"not null;unique_index"`
+	Password          string `gorm:"-"`
+	PasswordHash      string `gorm:"not null"`
+	RememberToken     string `gorm:"-"`
 	RememberTokenHash string `gorm:"not null;unique_index"`
 }
 
@@ -34,7 +33,7 @@ type UserDB interface {
 	ByID(id uint) (*User, error)
 	ByEmail(email string) (*User, error)
 	ByRememberToken(token string) (*User, error)
-
+	
 	// Methods for modifying user
 	Create(user *User) error
 	Update(user *User) error
@@ -50,7 +49,7 @@ func NewUserService(db *gorm.DB) UserService {
 	ug := &userGorm{db}
 	hmac := hash.NewHMAC(hmacSecretKey)
 	uv := newUserValidator(ug, hmac)
-
+	
 	return &userService{
 		UserDB: uv,
 	}
@@ -65,7 +64,7 @@ func (us *userService) Authenticate(email, password string) (*User, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	
 	err = bcrypt.CompareHashAndPassword([]byte(foundUser.PasswordHash),
 		[]byte(password+applicationPasswordPepper),
 	)
@@ -77,7 +76,7 @@ func (us *userService) Authenticate(email, password string) (*User, error) {
 			return nil, err
 		}
 	}
-
+	
 	return foundUser, nil
 }
 
@@ -102,7 +101,7 @@ func newUserValidator(udb UserDB, hmac hash.HMAC) *userValidator {
 
 type userValidator struct {
 	UserDB
-	hmac hash.HMAC
+	hmac       hash.HMAC
 	emailRegex *regexp.Regexp
 }
 

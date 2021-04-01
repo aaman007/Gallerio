@@ -2,11 +2,14 @@ package main
 
 import (
 	"fmt"
-	"gallerio/controllers"
-	"gallerio/middlewares"
-	"github.com/gorilla/mux"
 	"log"
 	"net/http"
+	
+	"gallerio/controllers"
+	"gallerio/middlewares"
+	"gallerio/models"
+	
+	"github.com/gorilla/mux"
 )
 
 const (
@@ -21,7 +24,7 @@ func main() {
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 		dbHost, dbPort, dbUser, dbPassword, dbName,
 	)
-	services, err := controllers.NewServices(psqlInfo)
+	services, err := models.NewServices(psqlInfo)
 	if err != nil {
 		panic(err)
 	}
@@ -30,7 +33,7 @@ func main() {
 
 	router := mux.NewRouter()
 	usersController := controllers.NewUsersController(services.User)
-	galleriesController := controllers.NewGalleriesController(services.Gallery, router)
+	galleriesController := controllers.NewGalleriesController(services.Gallery, services.Image, router)
 	coreController := controllers.NewStaticController()
 
 	assignUserMw := middlewares.AssignUser{
@@ -66,6 +69,8 @@ func main() {
 		loginRequiredMw.ApplyFunc(galleriesController.Update)).Methods("POST")
 	router.HandleFunc("/galleries/{id:[0-9]+}/delete",
 		loginRequiredMw.ApplyFunc(galleriesController.Delete)).Methods("POST")
+	router.HandleFunc("/galleries/{id:[0-9]+}/images",
+		loginRequiredMw.ApplyFunc(galleriesController.UploadImages)).Methods("POST")
 
 	log.Fatal(http.ListenAndServe(":8005", assignUserMw.Apply(router)))
 }
