@@ -15,7 +15,7 @@ func NewServices(connectionInfo string) (*Services, error) {
 		User:    NewUserService(db),
 		Gallery: NewGalleryService(db),
 		Image:   NewImageService(),
-		db:      db,
+		DB:      db,
 	}, nil
 }
 
@@ -23,15 +23,15 @@ type Services struct {
 	User    UserService
 	Gallery GalleryService
 	Image   ImageService
-	db      *gorm.DB
+	DB      *gorm.DB
 }
 
 func (s *Services) Close() error {
-	return s.db.Close()
+	return s.DB.Close()
 }
 
 func (s *Services) DestructiveReset() error {
-	err := s.db.DropTableIfExists(&User{}, &Gallery{}).Error
+	err := s.DB.DropTableIfExists(&User{}, &Gallery{}).Error
 	if err != nil {
 		return err
 	}
@@ -39,5 +39,5 @@ func (s *Services) DestructiveReset() error {
 }
 
 func (s *Services) AutoMigrate() error {
-	return s.db.AutoMigrate(&User{}, &Gallery{}).Error
+	return s.DB.AutoMigrate(&User{}, &Gallery{}).Error
 }

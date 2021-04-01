@@ -257,6 +257,7 @@ func (gc *GalleriesController) galleryByID(w http.ResponseWriter, req *http.Requ
 		case models.ErrNotFound:
 			http.Error(w, "Gallery Not Found", http.StatusNotFound)
 		default:
+			log.Println(err)
 			http.Error(w, "Server Error", http.StatusInternalServerError)
 		}
 		return nil, err

@@ -19,13 +19,13 @@ func testingUserService() (models.UserService, error) {
 		dbHost, dbPort, dbUser, dbPassword, dbName,
 	)
 
-	us, err := models.NewUserService(psqlInfo)
+	services, err := models.NewServices(psqlInfo)
 	if err != nil {
 		return nil, err
 	}
-	// us.DB.LogMode(false)
-	us.DestructiveReset()
-	return us, nil
+	services.DB.LogMode(false)
+	services.DestructiveReset()
+	return services.User, nil
 }
 
 func TestCreateUser(t *testing.T) {
