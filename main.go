@@ -74,9 +74,13 @@ func main() {
 	router.HandleFunc("/galleries/{id:[0-9]+}/images/{filename}/delete",
 		loginRequiredMw.ApplyFunc(galleriesController.DeleteImage)).Methods("POST")
 	
-	// Media Route
+	// Media Routes
 	mediaHandler := http.FileServer(http.Dir("./media/"))
 	router.PathPrefix("/media/").Handler(http.StripPrefix("/media/", mediaHandler))
+	
+	// Static Routes
+	staticHandler := http.FileServer(http.Dir("./static/"))
+	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", staticHandler))
 
 	log.Fatal(http.ListenAndServe(":8005", assignUserMw.Apply(router)))
 }

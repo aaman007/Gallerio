@@ -183,6 +183,5 @@ fabric.properties
 # Ignore tmp file
 tmp
 media
-static
 static_local
 .idea
