@@ -2,6 +2,9 @@ package main
 
 import (
 	"fmt"
+	"gallerio/utils/errors"
+	"gallerio/utils/rand"
+	"github.com/gorilla/csrf"
 	"log"
 	"net/http"
 	
@@ -35,7 +38,11 @@ func main() {
 	usersController := controllers.NewUsersController(services.User)
 	galleriesController := controllers.NewGalleriesController(services.Gallery, services.Image, router)
 	coreController := controllers.NewStaticController()
-
+	
+	isProd := false
+	b, err := rand.Bytes(32)
+	errors.Must(err)
+	csrfMw := csrf.Protect(b, csrf.Secure(isProd))
 	assignUserMw := middlewares.AssignUser{
 		UserService: services.User,
 	}
@@ -82,5 +89,5 @@ func main() {
 	staticHandler := http.FileServer(http.Dir("./static/"))
 	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", staticHandler))
 
-	log.Fatal(http.ListenAndServe(":8005", assignUserMw.Apply(router)))
+	log.Fatal(http.ListenAndServe(":8005", csrfMw(assignUserMw.Apply(router))))
 }

@@ -2,9 +2,12 @@ package views
 
 import (
 	"bytes"
+	"errors"
 	"gallerio/utils/context"
+	"github.com/gorilla/csrf"
 	"html/template"
 	"io"
+	"log"
 	"net/http"
 	"path/filepath"
 )
@@ -20,7 +23,11 @@ func NewView(layout string, files ...string) *View {
 	addTemplateExt(files)
 	files = append(files, layoutFiles()...)
 	
-	t, err := template.ParseFiles(files...)
+	t, err := template.New("").Funcs(template.FuncMap{
+		"csrfField": func() (template.HTML, error) {
+			return "", errors.New("csrfField is not implemented properly")
+		},
+	}).ParseFiles(files...)
 	if err != nil {
 		panic(err)
 	}
@@ -51,9 +58,16 @@ func (v *View) Render(w http.ResponseWriter, req *http.Request, data interface{}
 	}
 	
 	_data.User = context.User(req.Context())
+	csrfField := csrf.TemplateField(req)
+	tpl := v.Template.Funcs(template.FuncMap{
+		"csrfField": func() template.HTML {
+			return csrfField
+		},
+	})
 	
 	var buff bytes.Buffer
-	if err := v.Template.ExecuteTemplate(&buff, v.Layout, _data); err != nil {
+	if err := tpl.ExecuteTemplate(&buff, v.Layout, _data); err != nil {
+		log.Println(err)
 		http.Error(w, AlertMessageGeneric, http.StatusInternalServerError)
 		return
 	}

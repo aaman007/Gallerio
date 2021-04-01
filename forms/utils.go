@@ -10,6 +10,7 @@ func ParseForm(req *http.Request, form interface{}) error {
 		return err
 	}
 	decoder := schema.NewDecoder()
+	decoder.IgnoreUnknownKeys(true)
 	if err := decoder.Decode(form, req.PostForm); err != nil {
 		return err
 	}

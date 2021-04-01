@@ -13,6 +13,7 @@
 
 {{ define "galleryForm" }}
     <form method="POST" action="/galleries">
+        {{csrfField}}
         <div class="mb-3">
             <label for="id_name" class="form-label">Title</label>
             <input type="text" name="title" class="form-control" id="id_title" aria-describedby="titleHelp">

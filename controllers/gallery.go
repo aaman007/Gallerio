@@ -240,7 +240,7 @@ func (gc *GalleriesController) Delete(w http.ResponseWriter, req *http.Request) 
 		gc.EditView.Render(w, req, data)
 		return
 	}
-	http.Redirect(w, req, "/gallery", http.StatusSeeOther)
+	http.Redirect(w, req, "/galleries", http.StatusSeeOther)
 }
 
 func (gc *GalleriesController) galleryByID(w http.ResponseWriter, req *http.Request) (*models.Gallery, error) {
