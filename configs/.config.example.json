@@ -10,5 +10,12 @@
     "user": "robert",
     "password": "password",
     "name": "gallerio"
+  },
+
+
+  "mailgun": {
+    "domain": "domain",
+    "api_key": "api_key",
+    "pub_api_key": "public_validation_key"
   }
 }

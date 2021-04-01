@@ -6,7 +6,6 @@ import (
 	"os"
 )
 
-
 // Database Configs
 type PostgresConfig struct {
 	DBHost     string `json:"host"`
@@ -41,6 +40,17 @@ func DefaultPostgresConfig() PostgresConfig {
 	}
 }
 
+// Mailgun Configs
+type MailgunConfig struct {
+	Domain       string `json:"domain"`
+	APIKey       string `json:"api_key"`
+	PublicAPIKey string `json:"pub_api_key"`
+}
+
+func DefaultMailgunConfig() MailgunConfig {
+	return MailgunConfig{}
+}
+
 // Base Configs
 type Config struct {
 	Port     int            `json:"port"`
@@ -48,6 +58,7 @@ type Config struct {
 	Pepper   string         `json:"pepper"`
 	HMACKey  string         `json:"hmac_key"`
 	Database PostgresConfig `json:"database"`
+	Mailgun  MailgunConfig  `json:"mailgun"`
 }
 
 func (c Config) IsProduction() bool {
@@ -65,6 +76,7 @@ func DefaultConfig() Config {
 		Pepper:   "secret-random-string",
 		HMACKey:  "secret-hmac-key",
 		Database: DefaultPostgresConfig(),
+		Mailgun:  DefaultMailgunConfig(),
 	}
 }
 
@@ -78,7 +90,7 @@ func LoadConfig(configReq bool) Config {
 		fmt.Println("Loaded default configs......")
 		return DefaultConfig()
 	}
-	
+
 	var cfg Config
 	err = json.NewDecoder(f).Decode(&cfg)
 	if err != nil {

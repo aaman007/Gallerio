@@ -4,6 +4,7 @@ import (
 	"gallerio/forms"
 	"gallerio/models"
 	"gallerio/utils/context"
+	"gallerio/utils/email"
 	"gallerio/utils/rand"
 	"gallerio/views"
 	"log"
@@ -11,11 +12,12 @@ import (
 	"time"
 )
 
-func NewUsersController(us models.UserService) *UsersController {
+func NewUsersController(us models.UserService, mg email.Client) *UsersController {
 	return &UsersController{
 		SignUpView: views.NewView("base", "user/signup"),
 		SignInView: views.NewView("base", "user/signin"),
 		us:         us,
+		mg:         mg,
 	}
 }
 
@@ -23,6 +25,7 @@ type UsersController struct {
 	SignUpView *views.View
 	SignInView *views.View
 	us         models.UserService
+	mg         email.Client
 }
 
 // POST /signup
@@ -35,7 +38,7 @@ func (uc *UsersController) SignUp(w http.ResponseWriter, req *http.Request) {
 		uc.SignUpView.Render(w, req, data)
 		return
 	}
-	
+
 	user := models.User{
 		Name:     form.Name,
 		Username: form.Username,
@@ -52,8 +55,9 @@ func (uc *UsersController) SignUp(w http.ResponseWriter, req *http.Request) {
 		http.Redirect(w, req, "/signin", http.StatusSeeOther)
 		return
 	}
+	_ = uc.mg.Welcome(user.Name, user.Email)
 	alert := views.Alert{
-		Level: views.AlertLevelSuccess,
+		Level:   views.AlertLevelSuccess,
 		Message: "Welcome to Gallerio",
 	}
 	views.RedirectAlert(w, req, "/galleries", http.StatusSeeOther, alert)
@@ -69,7 +73,7 @@ func (uc *UsersController) SignIn(w http.ResponseWriter, req *http.Request) {
 		uc.SignInView.Render(w, req, data)
 		return
 	}
-	
+
 	user, err := uc.us.Authenticate(form.Email, form.Password)
 	if err != nil {
 		log.Println(err)
@@ -82,12 +86,13 @@ func (uc *UsersController) SignIn(w http.ResponseWriter, req *http.Request) {
 		uc.SignInView.Render(w, req, data)
 		return
 	}
-	
+
 	if err := uc.signInUser(w, user); err != nil {
 		log.Println(err)
 		uc.SignInView.Render(w, req, data)
 		return
 	}
+	_ = uc.mg.Welcome(user.Name, user.Email)
 	http.Redirect(w, req, "/galleries", http.StatusSeeOther)
 }
 
@@ -96,16 +101,16 @@ func (uc *UsersController) SignOut(w http.ResponseWriter, req *http.Request) {
 	cookie := &http.Cookie{
 		Name:     "remember_token",
 		Value:    "",
-		Expires: time.Now(),
+		Expires:  time.Now(),
 		HttpOnly: true,
 	}
 	http.SetCookie(w, cookie)
-	
+
 	user := context.User(req.Context())
 	token, _ := rand.RememberToken()
 	user.RememberToken = token
 	_ = uc.us.Update(user)
-	
+
 	http.Redirect(w, req, "/", http.StatusSeeOther)
 }
 

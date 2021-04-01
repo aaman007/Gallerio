@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"gallerio/configs"
+	"gallerio/utils/email"
 	"gallerio/utils/errors"
 	"gallerio/utils/rand"
 	"github.com/gorilla/csrf"
@@ -32,7 +33,7 @@ func main() {
 	dbCfg := cfg.Database
 	services, err := models.NewServices(
 		models.WithGorm(dbCfg.Dialect(), dbCfg.ConnectionInfo()),
-		models.WithLogMode(cfg.IsDevelopment()),
+		models.WithLogMode(false),
 		models.WithUser(cfg.Pepper, cfg.HMACKey),
 		models.WithGallery(),
 		models.WithImage(),
@@ -43,8 +44,15 @@ func main() {
 	defer services.Close()
 	services.AutoMigrate()
 
+	mgCfg := cfg.Mailgun
+	emailer := email.NewClient(
+		email.WithSender("Gallerio Support",
+		"support@sandboxfa300beae3034442af3cdd253f03c0c1.mailgun.org"),
+		email.WithMailgun(mgCfg.Domain, mgCfg.PublicAPIKey),
+	)
+
 	router := mux.NewRouter()
-	usersController := controllers.NewUsersController(services.User)
+	usersController := controllers.NewUsersController(services.User, emailer)
 	galleriesController := controllers.NewGalleriesController(services.Gallery, services.Image, router)
 	coreController := controllers.NewStaticController()
 	
