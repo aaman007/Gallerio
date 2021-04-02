@@ -14,18 +14,22 @@ import (
 
 func NewUsersController(us models.UserService, mg email.Client) *UsersController {
 	return &UsersController{
-		SignUpView: views.NewView("base", "user/signup"),
-		SignInView: views.NewView("base", "user/signin"),
-		us:         us,
-		mg:         mg,
+		SignUpView:   views.NewView("base", "user/signup"),
+		SignInView:   views.NewView("base", "user/signin"),
+		ResetPwView:  views.NewView("base", "user/reset_password"),
+		ForgotPwView: views.NewView("base", "user/forgot_password"),
+		us:           us,
+		mg:           mg,
 	}
 }
 
 type UsersController struct {
-	SignUpView *views.View
-	SignInView *views.View
-	us         models.UserService
-	mg         email.Client
+	SignUpView   *views.View
+	SignInView   *views.View
+	ForgotPwView *views.View
+	ResetPwView  *views.View
+	us           models.UserService
+	mg           email.Client
 }
 
 // GET /signup
@@ -46,7 +50,7 @@ func (uc *UsersController) SignUp(w http.ResponseWriter, req *http.Request) {
 		uc.SignUpView.Render(w, req, data)
 		return
 	}
-
+	
 	user := models.User{
 		Name:     form.Name,
 		Username: form.Username,
@@ -81,7 +85,7 @@ func (uc *UsersController) SignIn(w http.ResponseWriter, req *http.Request) {
 		uc.SignInView.Render(w, req, data)
 		return
 	}
-
+	
 	user, err := uc.us.Authenticate(form.Email, form.Password)
 	if err != nil {
 		log.Println(err)
@@ -94,7 +98,7 @@ func (uc *UsersController) SignIn(w http.ResponseWriter, req *http.Request) {
 		uc.SignInView.Render(w, req, data)
 		return
 	}
-
+	
 	if err := uc.signInUser(w, user); err != nil {
 		log.Println(err)
 		uc.SignInView.Render(w, req, data)
@@ -112,13 +116,85 @@ func (uc *UsersController) SignOut(w http.ResponseWriter, req *http.Request) {
 		HttpOnly: true,
 	}
 	http.SetCookie(w, cookie)
-
+	
 	user := context.User(req.Context())
 	token, _ := rand.RememberToken()
 	user.RememberToken = token
 	_ = uc.us.Update(user)
-
+	
 	http.Redirect(w, req, "/", http.StatusSeeOther)
+}
+
+// POST /forgot
+func (uc *UsersController) InitiateReset(w http.ResponseWriter, req *http.Request) {
+	var data views.Data
+	var form forms.ResetPasswordForm
+	data.Content = &form
+	
+	if err := forms.ParseForm(req, &form); err != nil {
+		data.SetAlert(err)
+		uc.ForgotPwView.Render(w, req, data)
+		return
+	}
+	
+	token, err := uc.us.InitiateReset(form.Email)
+	if err != nil {
+		data.SetAlert(err)
+		uc.ForgotPwView.Render(w, req, data)
+		return
+	}
+	
+	err = uc.mg.ResetPassword(form.Email, token)
+	if err != nil {
+		data.SetAlert(err)
+		uc.ForgotPwView.Render(w, req, data)
+		return
+	}
+	
+	data.AlertSuccess("An email was sent with necessary information to reset your password")
+	views.RedirectAlert(w, req, "/reset", http.StatusSeeOther, *data.Alert)
+}
+
+// GET /reset
+func (uc *UsersController) ResetPassword(w http.ResponseWriter, req *http.Request) {
+	var data views.Data
+	var form forms.ResetPasswordForm
+	data.Content = &form
+	
+	if err := forms.ParseURLParams(req, &form); err != nil {
+		data.SetAlert(err)
+	}
+	uc.ResetPwView.Render(w, req, data)
+}
+
+// POST /reset
+func (uc *UsersController) CompleteReset(w http.ResponseWriter, req *http.Request) {
+	var data views.Data
+	var form forms.ResetPasswordForm
+	data.Content = &form
+	
+	if err := forms.ParseForm(req, &form); err != nil {
+		data.SetAlert(err)
+		uc.ResetPwView.Render(w, req, data)
+		return
+	}
+	
+	user, err := uc.us.CompleteReset(form.Token, form.Password)
+	if err != nil {
+		data.SetAlert(err)
+		uc.ResetPwView.Render(w, req, data)
+		return
+	}
+	
+	err = uc.signInUser(w, user)
+	if err != nil {
+		data.SetAlert(err)
+		uc.SignInView.Render(w, req, data)
+		return
+	}
+	
+	data.AlertSuccess("Password reset successful. You are now logged in")
+	views.RedirectAlert(w, req, "/galleries", http.StatusSeeOther, *data.Alert)
 }
 
 func (uc *UsersController) signInUser(w http.ResponseWriter, user *models.User) error {

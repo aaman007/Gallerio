@@ -84,6 +84,14 @@ func main() {
 		alreadyLoggedInMw.ApplyFunc(usersController.SignUp)).Methods("POST")
 	router.HandleFunc("/signout",
 		loginRequiredMw.ApplyFunc(usersController.SignOut)).Methods("POST")
+	router.HandleFunc("/forgot",
+		alreadyLoggedInMw.Apply(usersController.ForgotPwView)).Methods("GET")
+	router.HandleFunc("/forgot",
+		alreadyLoggedInMw.ApplyFunc(usersController.InitiateReset)).Methods("POST")
+	router.HandleFunc("/reset",
+		alreadyLoggedInMw.ApplyFunc(usersController.ResetPassword)).Methods("GET")
+	router.HandleFunc("/reset",
+		alreadyLoggedInMw.ApplyFunc(usersController.CompleteReset)).Methods("POST")
 
 	// Galleries Routes
 	router.Handle("/galleries/new",

@@ -68,7 +68,7 @@ func (s *Services) Close() error {
 }
 
 func (s *Services) DestructiveReset() error {
-	err := s.db.DropTableIfExists(&User{}, &Gallery{}).Error
+	err := s.db.DropTableIfExists(&User{}, &Gallery{}, &passwordReset{}).Error
 	if err != nil {
 		return err
 	}
@@ -76,5 +76,5 @@ func (s *Services) DestructiveReset() error {
 }
 
 func (s *Services) AutoMigrate() error {
-	return s.db.AutoMigrate(&User{}, &Gallery{}).Error
+	return s.db.AutoMigrate(&User{}, &Gallery{}, &passwordReset{}).Error
 }

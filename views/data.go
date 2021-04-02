@@ -48,6 +48,27 @@ func (d *Data) AlertError(message string) {
 	}
 }
 
+func (d *Data) AlertSuccess(message string) {
+	d.Alert = &Alert{
+		Level:   AlertLevelSuccess,
+		Message: message,
+	}
+}
+
+func (d *Data) AlertInfo(message string) {
+	d.Alert = &Alert{
+		Level:   AlertLevelInfo,
+		Message: message,
+	}
+}
+
+func (d *Data) AlertWarning(message string) {
+	d.Alert = &Alert{
+		Level:   AlertLevelWarning,
+		Message: message,
+	}
+}
+
 type PublicError interface {
 	error
 	Public() string

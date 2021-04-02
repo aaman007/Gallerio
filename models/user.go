@@ -7,6 +7,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"regexp"
 	"strings"
+	"time"
 )
 
 var (
@@ -38,6 +39,8 @@ type UserDB interface {
 
 type UserService interface {
 	Authenticate(email, password string) (*User, error)
+	InitiateReset(email string) (string, error)
+	CompleteReset(token, newPw string) (*User, error)
 	UserDB
 }
 
@@ -47,14 +50,16 @@ func NewUserService(db *gorm.DB, pepper, hmacKey string) UserService {
 	uv := newUserValidator(ug, hmac, pepper)
 	
 	return &userService{
-		UserDB: uv,
-		pepper: pepper,
+		UserDB:          uv,
+		passwordResetDB: newPasswordResetValidator(&passwordResetGorm{db}, hmac),
+		pepper:          pepper,
 	}
 }
 
 type userService struct {
 	UserDB
-	pepper string
+	passwordResetDB passwordResetDB
+	pepper          string
 }
 
 func (us *userService) Authenticate(email, password string) (*User, error) {
@@ -76,6 +81,43 @@ func (us *userService) Authenticate(email, password string) (*User, error) {
 	}
 	
 	return foundUser, nil
+}
+
+func (us *userService) InitiateReset(email string) (string, error) {
+	user, err := us.ByEmail(email)
+	if err != nil {
+		return "", err
+	}
+	pwr := &passwordReset{UserID: user.ID}
+	err = us.passwordResetDB.Create(pwr)
+	if err != nil {
+		return "", err
+	}
+	return pwr.Token, nil
+}
+
+func (us *userService) CompleteReset(token, newPw string) (*User, error) {
+	pwr, err := us.passwordResetDB.ByToken(token)
+	if err != nil {
+		return nil, ErrTokenInvalid
+	}
+	if time.Now().Sub(pwr.CreatedAt) > (12 * time.Hour) {
+		return nil, ErrTokenInvalid
+	}
+	if len(newPw) < 8 {
+		return nil, ErrPasswordTooShort
+	}
+	user, err := us.ByID(pwr.ID)
+	if err != nil {
+		return nil, err
+	}
+	user.Password = newPw
+	err = us.Update(user)
+	if err != nil {
+		return nil, err
+	}
+	us.passwordResetDB.Delete(pwr.ID)
+	return user, nil
 }
 
 type userValFunc func(*User) error
