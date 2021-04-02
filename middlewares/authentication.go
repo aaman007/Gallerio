@@ -60,3 +60,22 @@ func (mw *LoginRequired) ApplyFunc(next http.HandlerFunc) http.HandlerFunc {
 		next(w, req)
 	}
 }
+
+type AlreadyLoggedIn struct {
+	models.UserService
+}
+
+func (mw *AlreadyLoggedIn) Apply(next http.Handler) http.HandlerFunc {
+	return mw.ApplyFunc(next.ServeHTTP)
+}
+
+func (mw *AlreadyLoggedIn) ApplyFunc(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, req *http.Request) {
+		user := context.User(req.Context())
+		if user != nil {
+			http.Redirect(w, req, "/", http.StatusSeeOther)
+			return
+		}
+		next(w, req)
+	}
+}

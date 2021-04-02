@@ -65,16 +65,23 @@ func main() {
 	loginRequiredMw := middlewares.LoginRequired{
 		UserService: services.User,
 	}
+	alreadyLoggedInMw := middlewares.AlreadyLoggedIn{
+		UserService: services.User,
+	}
 
 	// Static Routes
 	router.Handle("/", coreController.HomeView).Methods("GET")
 	router.Handle("/contact", coreController.ContactView).Methods("GET")
 
 	// Accounts Routes
-	router.Handle("/signin", usersController.SignInView).Methods("GET")
-	router.HandleFunc("/signin", usersController.SignIn).Methods("POST")
-	router.HandleFunc("/signup", usersController.New).Methods("GET")
-	router.HandleFunc("/signup", usersController.SignUp).Methods("POST")
+	router.Handle("/signin",
+		alreadyLoggedInMw.Apply(usersController.SignInView)).Methods("GET")
+	router.HandleFunc("/signin",
+		alreadyLoggedInMw.ApplyFunc(usersController.SignIn)).Methods("POST")
+	router.HandleFunc("/signup",
+		alreadyLoggedInMw.ApplyFunc(usersController.New)).Methods("GET")
+	router.HandleFunc("/signup",
+		alreadyLoggedInMw.ApplyFunc(usersController.SignUp)).Methods("POST")
 	router.HandleFunc("/signout",
 		loginRequiredMw.ApplyFunc(usersController.SignOut)).Methods("POST")
 
