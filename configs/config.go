@@ -51,6 +51,18 @@ func DefaultMailgunConfig() MailgunConfig {
 	return MailgunConfig{}
 }
 
+// Dropbox Configs
+type DropboxConfig struct {
+	ID       string `json:"id"`
+	Secret   string `json:"secret"`
+	AuthURL  string `json:"auth_url"`
+	TokenURL string `json:"token_url"`
+}
+
+func DefaultDropboxConfig() DropboxConfig {
+	return DropboxConfig{}
+}
+
 // Base Configs
 type Config struct {
 	Port     int            `json:"port"`
@@ -59,6 +71,7 @@ type Config struct {
 	HMACKey  string         `json:"hmac_key"`
 	Database PostgresConfig `json:"database"`
 	Mailgun  MailgunConfig  `json:"mailgun"`
+	Dropbox  DropboxConfig  `json:"dropbox"`
 }
 
 func (c Config) IsProduction() bool {
@@ -77,6 +90,7 @@ func DefaultConfig() Config {
 		HMACKey:  "secret-hmac-key",
 		Database: DefaultPostgresConfig(),
 		Mailgun:  DefaultMailgunConfig(),
+		Dropbox:  DefaultDropboxConfig(),
 	}
 }
 
@@ -90,7 +104,7 @@ func LoadConfig(configReq bool) Config {
 		fmt.Println("Loaded default configs......")
 		return DefaultConfig()
 	}
-
+	
 	var cfg Config
 	err = json.NewDecoder(f).Decode(&cfg)
 	if err != nil {

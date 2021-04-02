@@ -23,3 +23,7 @@ func User(ctx context.Context) *models.User {
 	}
 	return nil
 }
+
+func TODO() context.Context {
+	return context.TODO()
+}

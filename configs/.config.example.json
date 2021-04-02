@@ -12,10 +12,16 @@
     "name": "gallerio"
   },
 
-
   "mailgun": {
     "domain": "domain",
     "api_key": "api_key",
     "pub_api_key": "public_validation_key"
+  },
+
+  "dropbox": {
+    "id": "",
+    "secret": "",
+    "auth_url": "https://www.dropbox.com/oauth2/authorize",
+    "token_url": "https://api.dropboxapi.com/oauth2/token"
   }
 }

@@ -8,6 +8,7 @@ import (
 	"gallerio/utils/errors"
 	"gallerio/utils/rand"
 	"github.com/gorilla/csrf"
+	"golang.org/x/oauth2"
 	"log"
 	"net/http"
 	
@@ -18,6 +19,18 @@ import (
 	"github.com/gorilla/mux"
 )
 
+func getDropboxConfig(id, secret, autUrl, tokenUrl string) *oauth2.Config {
+	return &oauth2.Config{
+		ClientID: id,
+		ClientSecret: secret,
+		Endpoint: oauth2.Endpoint{
+			AuthURL: autUrl,
+			TokenURL: tokenUrl,
+		},
+		RedirectURL: "http://localhost:8000/oauth/dropbox/callback",
+		Scopes: []string{"files.metadata.read"},
+	}
+}
 
 func main() {
 	// To View list of flags
@@ -37,6 +50,7 @@ func main() {
 		models.WithUser(cfg.Pepper, cfg.HMACKey),
 		models.WithGallery(),
 		models.WithImage(),
+		models.WithOAuth(),
 	)
 	if err != nil {
 		panic(err)
@@ -55,6 +69,14 @@ func main() {
 	usersController := controllers.NewUsersController(services.User, emailer)
 	galleriesController := controllers.NewGalleriesController(services.Gallery, services.Image, router)
 	coreController := controllers.NewStaticController()
+	configs := make(map[string]*oauth2.Config)
+	configs[models.OAuthDropbox] = getDropboxConfig(
+		cfg.Dropbox.ID,
+		cfg.Dropbox.Secret,
+		cfg.Dropbox.AuthURL,
+		cfg.Dropbox.TokenURL,
+	)
+	oauthController := controllers.NewOAuthsController(services.OAuth, configs)
 	
 	b, err := rand.Bytes(32)
 	errors.Must(err)
@@ -113,6 +135,14 @@ func main() {
 		loginRequiredMw.ApplyFunc(galleriesController.UploadImage)).Methods("POST")
 	router.HandleFunc("/galleries/{id:[0-9]+}/images/{filename}/delete",
 		loginRequiredMw.ApplyFunc(galleriesController.DeleteImage)).Methods("POST")
+	
+	// OAuth Controller
+	router.HandleFunc("/oauth/{provider:[a-z]+}/connect",
+		loginRequiredMw.ApplyFunc(oauthController.Connect)).Methods("GET")
+	router.HandleFunc("/oauth/{provider:[a-z]+}/callback",
+		loginRequiredMw.ApplyFunc(oauthController.Callback)).Methods("GET")
+	router.HandleFunc("/oauth/{provider:[a-z]+}/test",
+		loginRequiredMw.ApplyFunc(oauthController.DropboxTest)).Methods("GET")
 	
 	// Media Routes
 	mediaHandler := http.FileServer(http.Dir("./media/"))
