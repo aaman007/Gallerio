@@ -69,14 +69,14 @@ func main() {
 	usersController := controllers.NewUsersController(services.User, emailer)
 	galleriesController := controllers.NewGalleriesController(services.Gallery, services.Image, router)
 	coreController := controllers.NewStaticController()
-	configs := make(map[string]*oauth2.Config)
-	configs[models.OAuthDropbox] = getDropboxConfig(
+	oauthConfigs := make(map[string]*oauth2.Config)
+	oauthConfigs[models.OAuthDropbox] = getDropboxConfig(
 		cfg.Dropbox.ID,
 		cfg.Dropbox.Secret,
 		cfg.Dropbox.AuthURL,
 		cfg.Dropbox.TokenURL,
 	)
-	oauthController := controllers.NewOAuthsController(services.OAuth, configs)
+	oauthController := controllers.NewOAuthsController(services.OAuth, oauthConfigs)
 	
 	b, err := rand.Bytes(32)
 	errors.Must(err)
