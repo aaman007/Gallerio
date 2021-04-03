@@ -2,18 +2,18 @@ package main
 
 import (
 	"flag"
-	"text/template"
 	"os"
+	"text/template"
 )
 
 type data struct {
-	Name string
+	Name   string
 	Object string
 }
 
 func main() {
 	// To Generate a model write the following command
-	// run : go run cmd/gen/main.go -name=GeneratedModel -object=generatedModel  > models/generated_model.go
+	// run : go run cmd/gen/main.go -name=GeneratedModel -object=generatedModel  > models/qenerated_model.go
 	
 	var d data
 	flag.StringVar(&d.Name, "name", "", "Name of the model in pascal case")

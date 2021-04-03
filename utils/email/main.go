@@ -3,7 +3,7 @@ package email
 import (
 	"context"
 	"fmt"
-	"gopkg.in/mailgun/mailgun-go.v4"
+	"github.com/mailgun/mailgun-go/v4"
 	"log"
 	"net/url"
 	"time"
